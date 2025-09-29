@@ -6,7 +6,8 @@ LDFLAGS := -Wl,-rpath,. -pthread -ldl -lX11 -lXext -lXcursor
 
 # CEF version to fetch (change if you need another version)
 CEF_VERSION := cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185
-CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_$(CEF_VERSION)_linux64.tar.bz2
+#CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_$(CEF_VERSION)_linux64.tar.bz2
+CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185_linux64.tar.bz2
 CEF_TARBALL := cef.tar.bz2
 CEF_DIR := third_party/cef
 
@@ -72,12 +73,19 @@ fetch_cef:
 clean:
 	rm -f $(OBJS) $(BIN) *.a
 
+CEF_BUILD := Release
+
 run: embed_cef
-#run: run_resources
-	ln -sf ./third_party/cef/Debug/libcef.so libcef.so
+	ln -sf ./third_party/cef/$(CEF_BUILD)/v8_context_snapshot.bin v8_context_snapshot.bin
+	ln -sf ./third_party/cef/$(CEF_BUILD)/libEGL.so libEGL.so
+	ln -sf ./third_party/cef/$(CEF_BUILD)/libGLESv2.so libGLESv2.so
+	ln -sf ./third_party/cef/$(CEF_BUILD)/libcef.so libcef.so
 	ln -sf ./third_party/cef/Resources/locales locales
 	ln -sf ./third_party/cef/Resources/icudtl.dat icudtl.dat
 	ln -sf ./third_party/cef/Resources/chrome_100_percent.pak chrome_100_percent.pak
+	ln -sf ./third_party/cef/Resources/chrome_200_percent.pak chrome_200_percent.pak
 	ln -sf ./third_party/cef/Resources/resources.pak resources.pak
+
 	./$(BIN)
+#	gdb ./$(BIN)
 #	strace -f ./$(BIN)

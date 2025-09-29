@@ -37,10 +37,19 @@ private:
 // horrible hack
 #define MYDIR "/home/nekrad/src/netcom/ceftest"
 
+#include <filesystem>
+std::string abs_path = std::filesystem::absolute("third_party/cef/Release").string();
+
+class SimpleApp : public CefApp {
+public:
+    SimpleApp() {}
+    IMPLEMENT_REFCOUNTING(SimpleApp);
+};
+
 int main(int argc, char* argv[]) {
     // 1. Initialize CEF
     CefMainArgs main_args(argc, argv);
-    CefRefPtr<CefApp> app = nullptr;
+    CefRefPtr<SimpleApp> app = new SimpleApp();
 
     int exit_code = CefExecuteProcess(main_args, app, nullptr);
     if (exit_code >= 0) return exit_code;
@@ -48,19 +57,23 @@ int main(int argc, char* argv[]) {
     CefSettings settings;
     settings.no_sandbox = true;
 
-    // Tell CEF exactly where resources are
-    CefString(&settings.resources_dir_path).FromASCII(MYDIR "/third_party/cef/Resources");
-//    CefString(&settings.locales_dir_path).FromASCII(MYDIR "/third_party/cef/Resources/locales");
-//    CefString(&settings.locales_dir_path).FromASCII(MYDIR "/locales");
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::string resources_path = cwd.string();
+    std::string locales_path   = (cwd / "locales").string();
+    std::string cache_path = (cwd / "cache").string();
 
-    CefString(&settings.root_cache_path).FromASCII(MYDIR "/cache");
+    CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
+    CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
+    CefString(&settings.cache_path).FromASCII(cache_path.c_str());
+
+    CefRefPtr<CefCommandLine> cmd = CefCommandLine::GetGlobalCommandLine();
+    cmd->AppendSwitch("disable-gpu");
+    cmd->AppendSwitch("disable-gpu-compositing");
 
     if (!CefInitialize(main_args, settings, app.get(), nullptr)) {
         std::cerr << "CEF initialization failed" << std::endl;
         return 1;
     }
-
-//    CefInitialize(main_args, settings, app, nullptr);
 
     // 2. Parent window (XID) from host app
     // For example, read from argv or obtained via IPC
