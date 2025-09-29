@@ -1,7 +1,7 @@
 # Compiler / flags
 CXX := g++
 #CXXFLAGS := -std=c++17 -O2 -Wall -Wextra -Ithird_party/cef -Wno-unused
-CXXFLAGS := -std=c++17 -O2 -Ithird_party/cef -Wno-unused
+CXXFLAGS := -g -std=c++17 -O2 -Ithird_party/cef -Wno-unused
 LDFLAGS := -Wl,-rpath,. -pthread -ldl -lX11 -lXext -lXcursor
 
 # CEF version to fetch (change if you need another version)
@@ -34,17 +34,9 @@ all: $(BIN)
 dump:
 	echo "$(WRAPPER_SRCS)"
 
-#run_resources: $(BIN)
-#	@echo "Copying CEF resources..."
-#	mkdir -p ./locales
-#	cp -r $(CEF_DIR)/Release/$(CEF_RESOURCES) ./
-
 # Rule to build the binary
 $(BIN): fetch_cef $(OBJS) $(WRAPPER_LIB)
 	$(CXX) -o $@ $(OBJS) $(WRAPPER_LIB) -L$(CEF_DIR)/Release -lcef $(LDFLAGS)
-
-wr:	$(WRAPPER_OBJS)
-	echo WR $(WRAPPER_SRCS)
 
 $(CEF_DIR)/libcef_dll/%.o: $(CEF_DIR)/libcef_dll/%.cc
 	$(CXX) $(CXXFLAGS) -I$(CEF_DIR) -c $< -o $@ -DWRAPPING_CEF_SHARED
