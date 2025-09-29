@@ -1,0 +1,4 @@
+
+* working now w/ independent toplevel window (not embedded yet)
+* build/deploy needs to be cleaned up --> separate dir
+* yet need to embed the window
