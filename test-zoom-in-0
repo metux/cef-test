@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+. conf.sh
+
+api_zoom "$SLOT_0" "in"

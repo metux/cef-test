@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+. conf.sh
+
+# test a site w/ expired SSL certificate
+URL="http://www.kom-in.thur.de/"
+
+api_seturl "$SLOT_0" "$URL"

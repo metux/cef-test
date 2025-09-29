@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+. conf.sh
+
+SLOT="0"
+XID="580000a"
+
+api_call "create/*/$XID/1000/1000/"

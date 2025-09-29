@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+. conf.sh
+
+URL="http%3A%2F%2Fwww.netcom.eu%2F"
+
+api_seturl "$SLOT_1" "$URL"

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+. conf.sh
+
+api_script "$SLOT_0" "console.log('hello world XXX');"

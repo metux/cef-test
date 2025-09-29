@@ -1,0 +1,7 @@
+*.o
+*.a
+*.so
+*.pak
+*.dat
+*.bin
+/dist
