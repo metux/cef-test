@@ -71,7 +71,7 @@ fetch_cef:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(BIN) *.a
+	rm -f $(OBJS) $(BIN) *.a *.so *.bin *.pak *.dat
 
 CEF_BUILD := Release
 
