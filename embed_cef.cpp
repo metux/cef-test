@@ -1,4 +1,5 @@
 #include <X11/Xlib.h>
+#include <iostream>
 
 #include "include/capi/cef_app_capi.h"
 #include "include/cef_app.h"
@@ -33,6 +34,9 @@ private:
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
 
+// horrible hack
+#define MYDIR "/home/nekrad/src/netcom/ceftest"
+
 int main(int argc, char* argv[]) {
     // 1. Initialize CEF
     CefMainArgs main_args(argc, argv);
@@ -43,7 +47,20 @@ int main(int argc, char* argv[]) {
 
     CefSettings settings;
     settings.no_sandbox = true;
-    CefInitialize(main_args, settings, app, nullptr);
+
+    // Tell CEF exactly where resources are
+    CefString(&settings.resources_dir_path).FromASCII(MYDIR "/third_party/cef/Resources");
+//    CefString(&settings.locales_dir_path).FromASCII(MYDIR "/third_party/cef/Resources/locales");
+//    CefString(&settings.locales_dir_path).FromASCII(MYDIR "/locales");
+
+    CefString(&settings.root_cache_path).FromASCII(MYDIR "/cache");
+
+    if (!CefInitialize(main_args, settings, app.get(), nullptr)) {
+        std::cerr << "CEF initialization failed" << std::endl;
+        return 1;
+    }
+
+//    CefInitialize(main_args, settings, app, nullptr);
 
     // 2. Parent window (XID) from host app
     // For example, read from argv or obtained via IPC
