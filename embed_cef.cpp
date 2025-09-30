@@ -70,69 +70,56 @@ int main(int argc, char* argv[])
     }
 
     /* parse cmdline args */
-
-    char *new_argv[argc] = { 0 };
-    int new_argc = 0;
-
     if (argc < 1) {
         fprintf(stderr, "something's wrong with args: argc = 0\n");
         return 1;
     }
 
-    new_argv[0] = argv[0];
-    new_argc = 1;
-
-    printf("argc=%d\n", argc);
-    for (int x=0; x<argc; x++)
-        printf("arg %d: \"%s\"\n", argc, argv[x]);
-
-    // 1. Initialize CEF
-    CefMainArgs main_args(argc, argv);
-    CefRefPtr<SimpleApp> app = new SimpleApp();
+    uint32_t parent_xid = 0;
+    if (argc > 1) {
+        parent_xid = atoi(argv[1]);
+        printf("parsing window id: %s -- %ld\n", argv[1], parent_xid);
+    }
 
     CefSettings settings;
     settings.no_sandbox = true;
 
-    std::filesystem::path cwd = std::filesystem::current_path();
+    std::filesystem::path cwd  = std::filesystem::current_path();
     std::string resources_path = cwd.string();
     std::string locales_path   = (cwd / "locales").string();
-    std::string cache_path = (cwd / "cache").string();
+    std::string cache_path     = (cwd / "cache").string();
 
     CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
     CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
     CefString(&settings.cache_path).FromASCII(cache_path.c_str());
 
-    CefRefPtr<CefCommandLine> cmd = CefCommandLine::GetGlobalCommandLine();
-//    cmd->AppendSwitch("disable-gpu");
-//    cmd->AppendSwitch("disable-gpu-compositing");
-
+    /* dont pass it our actual args */
+    CefMainArgs main_args(1, argv);
+    CefRefPtr<SimpleApp> app = new SimpleApp();
     if (!CefInitialize(main_args, settings, app.get(), nullptr)) {
         std::cerr << "CEF initialization failed" << std::endl;
         return 1;
     }
 
-    // 2. Parent window (XID) from host app
-    // For example, read from argv or obtained via IPC
-    Window parent_xid = 0x420000b;
-//    Window parent_xid = strtoul(argv[1], nullptr, 0);
-
     // 3. WindowInfo: child mode
     CefWindowInfo window_info;
-    int width = 800, height = 600;
-//    window_info.SetAsChild((CefWindowHandle)parent_xid, CefRect(0, 0, width, height));
+    window_info.SetAsChild(
+        (CefWindowHandle)parent_xid,
+        CefRect(0, 0, 800, 600));
 
     CefBrowserSettings browser_settings;
 
     // 4. Create the browser
     CefRefPtr<SimpleHandler> handler(new SimpleHandler());
-    CefBrowserHost::CreateBrowser(window_info, handler,
-                                  "https://example.com",
+    CefBrowserHost::CreateBrowser(window_info,
+                                  handler,
+                                  "file:///",
                                   browser_settings,
-                                  nullptr, nullptr);
+                                  nullptr,
+                                  nullptr);
 
     // 5. Run the CEF message loop
     CefRunMessageLoop();
-
     CefShutdown();
     return 0;
 }

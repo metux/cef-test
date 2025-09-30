@@ -86,6 +86,3 @@ bundle: embed_cef
 
 run: embed_cef bundle
 	cd $(DIST_DIR) && ./$(BIN)
-#	./$(BIN) 112
-#	gdb ./$(BIN)
-#	strace -f ./$(BIN)
