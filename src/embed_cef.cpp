@@ -51,6 +51,11 @@ public:
 
 int already_in = 0;
 
+std::filesystem::path cwd  = std::filesystem::current_path();
+std::string resources_path = cwd.string();
+std::string locales_path   = (cwd / "locales").string();
+std::string cache_path     = (cwd / "cache").string();
+
 int main(int argc, char* argv[])
 {
     /* check whether we're in a sub-process */
@@ -84,10 +89,6 @@ int main(int argc, char* argv[])
     CefSettings settings;
     settings.no_sandbox = true;
 
-    std::filesystem::path cwd  = std::filesystem::current_path();
-    std::string resources_path = cwd.string();
-    std::string locales_path   = (cwd / "locales").string();
-    std::string cache_path     = (cwd / "cache").string();
 
     CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
     CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
