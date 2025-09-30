@@ -53,18 +53,20 @@ int already_in = 0;
 
 int main(int argc, char* argv[])
 {
+    /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
         if (strncmp(argv[x], "--type=", 7)==0) {
-            printf("SUBPROCESSES %s\n", argv[x]);
             already_in = 1;
         }
     }
 
+    /* just pass control to CEF if we're in a subprocess */
     if (already_in) {
-        printf("ALREADY IN\n");
-    }
-    else {
-        printf("FIRST PROCESS\n");
+        CefMainArgs main_args(argc, argv);
+        CefRefPtr<SimpleApp> app = new SimpleApp();
+        int exit_code = CefExecuteProcess(main_args, app, nullptr);
+        if (exit_code >= 0) return exit_code;
+        return 0;
     }
 
     /* parse cmdline args */
@@ -88,13 +90,9 @@ int main(int argc, char* argv[])
     CefMainArgs main_args(argc, argv);
     CefRefPtr<SimpleApp> app = new SimpleApp();
 
-    int exit_code = CefExecuteProcess(main_args, app, nullptr);
-    if (exit_code >= 0) return exit_code;
-
     CefSettings settings;
     settings.no_sandbox = true;
 
-//    std::filesystem::path cwd = std::filesystem::current_path() / ".cefdata";
     std::filesystem::path cwd = std::filesystem::current_path();
     std::string resources_path = cwd.string();
     std::string locales_path   = (cwd / "locales").string();
