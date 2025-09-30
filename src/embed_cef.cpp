@@ -119,6 +119,10 @@ static CefWindowInfo make_window_info(uint32_t parent_xid, int width, int height
     return wi;
 }
 
+static CefBrowserSettings make_browser_settings(void) {
+    return CefBrowserSettings();
+}
+
 static CefSettings make_settings(void) {
     char exe_path[4096];
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
@@ -171,15 +175,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    CefBrowserSettings browser_settings;
     CefBrowserHost::CreateBrowser(make_window_info(parent_xid, 800, 600),
                                   new SimpleHandler(),
                                   "file:///",
-                                  browser_settings,
+                                  make_browser_settings(),
                                   nullptr,
                                   nullptr);
 
-    // 5. Run the CEF message loop
     CefRunMessageLoop();
     CefShutdown();
     return 0;
