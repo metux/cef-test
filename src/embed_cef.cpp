@@ -1,4 +1,6 @@
 #include <X11/Xlib.h>
+#include <libgen.h>
+
 #include <iostream>
 #include <list>
 #include <filesystem>
@@ -51,10 +53,6 @@ public:
     IMPLEMENT_REFCOUNTING(SimpleApp);
 };
 
-std::filesystem::path cwd  = std::filesystem::current_path();
-std::string resources_path = cwd.string();
-std::string locales_path   = (cwd / "locales").string();
-
 static bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
@@ -82,6 +80,21 @@ int main(int argc, char* argv[])
         if (exit_code >= 0) return exit_code;
         return 0;
     }
+
+    char exe_path[4096];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len == -1) {
+        perror("readlink");
+        return 1;
+    }
+    exe_path[len] = '\0'; // Null-terminate
+    dirname(exe_path);
+
+    printf("Executable: %s\n", exe_path);
+
+    std::filesystem::path cwd  = std::filesystem::current_path();
+    std::string resources_path = cwd.string();
+    std::string locales_path   = (cwd / "locales").string();
 
     /* parse cmdline args */
     if (argc < 1) {
