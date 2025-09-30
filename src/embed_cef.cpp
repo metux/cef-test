@@ -106,12 +106,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    /* parse cmdline args */
-    if (argc < 1) {
-        fprintf(stderr, "something's wrong with args: argc = 0\n");
-        return 1;
-    }
-
     uint32_t parent_xid = 0;
     if (argc > 1) {
         parent_xid = strtol(argv[1], NULL, 16);
