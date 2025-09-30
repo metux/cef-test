@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
     CefSettings settings;
     settings.no_sandbox = true;
 
+//    std::filesystem::path cwd = std::filesystem::current_path() / ".cefdata";
     std::filesystem::path cwd = std::filesystem::current_path();
     std::string resources_path = cwd.string();
     std::string locales_path   = (cwd / "locales").string();

@@ -1,22 +1,25 @@
-# Compiler / flags
-CXX := g++
-#CXXFLAGS := -std=c++17 -O2 -Wall -Wextra -Ithird_party/cef -Wno-unused
-CXXFLAGS := -g -std=c++17 -O2 -Ithird_party/cef -Wno-unused
-LDFLAGS := -Wl,-rpath,. -pthread -ldl -lX11 -lXext -lXcursor
-
 # CEF version to fetch (change if you need another version)
 CEF_VERSION := cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185
 #CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_$(CEF_VERSION)_linux64.tar.bz2
 CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185_linux64.tar.bz2
 CEF_TARBALL := cef.tar.bz2
 CEF_DIR := third_party/cef
+CEF_BUILD := Release
+
+PKG_CONFIG ?= pkgconf
+
+X11_LIBS := $(shell $(PKG_CONFIG) --libs x11 xcursor xext)
+X11_CFLAGS := $(shell $(PKG_CONFIG) --cflags x11 xcursor xext)
+
+# Compiler / flags
+CXX := g++
+CXXFLAGS := -g -std=c++17 -O2 -I$(CEF_DIR) -Wno-unused $(X11_CFLAGS)
+LDFLAGS := -Wl,-rpath,. -pthread -ldl $(X11_LIBS)
 
 # Sources
 SRCS := embed_cef.cpp
 OBJS := $(SRCS:.cpp=.o)
 BIN := embed_cef
-
-LIBCEF_DIR := $(CEF_DIR)/libcef_dll
 
 WRAPPER_SRCS := $(wildcard $(CEF_DIR)/libcef_dll/*.cc) \
                 $(wildcard $(CEF_DIR)/libcef_dll/base/*.cc) \
@@ -27,12 +30,9 @@ WRAPPER_SRCS := $(wildcard $(CEF_DIR)/libcef_dll/*.cc) \
 WRAPPER_OBJS := $(WRAPPER_SRCS:.cc=.o)
 WRAPPER_LIB := libcef_lib.a
 
-.PHONY: all clean fetch_cef
+.PHONY: all clean fetch_cef bundle run
 
-all: $(BIN)
-
-dump:
-	echo "$(WRAPPER_SRCS)"
+all: bundle
 
 # Rule to build the binary
 $(BIN): fetch_cef $(OBJS) $(WRAPPER_LIB)
@@ -47,7 +47,6 @@ $(WRAPPER_LIB): $(WRAPPER_OBJS)
 
 # Fetch and extract CEF if not present
 fetch_cef:
-	echo "CEF_URL=$(CEF_URL)"
 	@if [ ! -d "$(CEF_DIR)" ]; then \
             echo ">>> Downloading CEF $(CEF_VERSION)" && \
             mkdir -p third_party && \
@@ -63,23 +62,30 @@ fetch_cef:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -Rf $(OBJS) $(BIN) *.a *.so *.bin *.pak *.dat cache locales extensions
+	rm -Rf $(OBJS) $(BIN) *.a *.so $(DIST_DIR)
 
-CEF_BUILD := Release
+DIST_DIR := dist
+DIST_CEF_FILES := \
+    $(CEF_BUILD)/v8_context_snapshot.bin \
+    $(CEF_BUILD)/libEGL.so \
+    $(CEF_BUILD)/libGLESv2.so \
+    $(CEF_BUILD)/libcef.so \
+    Resources/locales \
+    Resources/icudtl.dat \
+    Resources/chrome_100_percent.pak \
+    Resources/chrome_200_percent.pak \
+    Resources/resources.pak
 
-run: embed_cef
-	ln -sf ./third_party/cef/$(CEF_BUILD)/v8_context_snapshot.bin v8_context_snapshot.bin
-	ln -sf ./third_party/cef/$(CEF_BUILD)/libEGL.so libEGL.so
-	ln -sf ./third_party/cef/$(CEF_BUILD)/libGLESv2.so libGLESv2.so
-	ln -sf ./third_party/cef/$(CEF_BUILD)/libcef.so libcef.so
-	ln -sf ./third_party/cef/Resources/locales locales
-	ln -sf ./third_party/cef/Resources/icudtl.dat icudtl.dat
-	ln -sf ./third_party/cef/Resources/chrome_100_percent.pak chrome_100_percent.pak
-	ln -sf ./third_party/cef/Resources/chrome_200_percent.pak chrome_200_percent.pak
-	ln -sf ./third_party/cef/Resources/resources.pak resources.pak
+DIST_FILES := $(addprefix $(CEF_DIR)/, $(DIST_CEF_FILES))
 
-	./$(BIN)
+bundle: embed_cef
+	rm -Rf $(DIST_DIR)
+	mkdir -p $(DIST_DIR)
+	for fn in $(DIST_FILES) ; do cp -R $$fn $(DIST_DIR) ; done
+	cp embed_cef $(DIST_DIR)
 
+run: embed_cef bundle
+	cd $(DIST_DIR) && ./$(BIN)
 #	./$(BIN) 112
 #	gdb ./$(BIN)
 #	strace -f ./$(BIN)
