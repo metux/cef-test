@@ -85,4 +85,4 @@ bundle: embed_cef
 	cp embed_cef $(DIST_DIR)
 
 run: embed_cef bundle
-	cd $(DIST_DIR) && ./$(BIN)
+	cd $(DIST_DIR) && ./$(BIN) 0x480000a

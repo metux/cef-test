@@ -92,8 +92,9 @@ int main(int argc, char* argv[])
 
     uint32_t parent_xid = 0;
     if (argc > 1) {
-        parent_xid = atoi(argv[1]);
-        printf("parsing window id: %s -- %ld\n", argv[1], parent_xid);
+        char *endptr;
+        parent_xid = strtol(argv[1], &endptr, 16);
+        printf("parsing window id: %s -- %ld %lX\n", argv[1], parent_xid, parent_xid);
     }
 
     CefSettings settings;
