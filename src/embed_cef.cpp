@@ -3,6 +3,8 @@
 #include <list>
 #include <filesystem>
 
+#include <stdbool.h>
+
 #include "include/capi/cef_app_capi.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
@@ -49,24 +51,32 @@ public:
     IMPLEMENT_REFCOUNTING(SimpleApp);
 };
 
-int already_in = 0;
-
 std::filesystem::path cwd  = std::filesystem::current_path();
 std::string resources_path = cwd.string();
 std::string locales_path   = (cwd / "locales").string();
 std::string cache_path     = (cwd / "cache").string();
 
-int main(int argc, char* argv[])
-{
+static bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
-        if (strncmp(argv[x], "--type=", 7)==0) {
-            already_in = 1;
-        }
+        if (strncmp(argv[x], "--type=", 7)==0)
+            return true;
     }
+    return false;
+}
 
+static CefWindowInfo make_window_info(uint32_t parent_xid, int width, int height) {
+    CefWindowInfo wi;
+    wi.SetAsChild(
+        (CefWindowHandle)parent_xid,
+        CefRect(0, 0, width, height));
+    return wi;
+}
+
+int main(int argc, char* argv[])
+{
     /* just pass control to CEF if we're in a subprocess */
-    if (already_in) {
+    if (check_cef_subprocess(argc, argv)) {
         CefMainArgs main_args(argc, argv);
         CefRefPtr<SimpleApp> app = new SimpleApp();
         int exit_code = CefExecuteProcess(main_args, app, nullptr);
@@ -89,30 +99,25 @@ int main(int argc, char* argv[])
     CefSettings settings;
     settings.no_sandbox = true;
 
-
     CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
     CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
     CefString(&settings.cache_path).FromASCII(cache_path.c_str());
 
     /* dont pass it our actual args */
-    CefMainArgs main_args(1, argv);
     CefRefPtr<SimpleApp> app = new SimpleApp();
-    if (!CefInitialize(main_args, settings, app.get(), nullptr)) {
+    if (!CefInitialize(CefMainArgs(1, argv),
+                       settings,
+                       app.get(),
+                       nullptr)) {
         std::cerr << "CEF initialization failed" << std::endl;
         return 1;
     }
-
-    // 3. WindowInfo: child mode
-    CefWindowInfo window_info;
-    window_info.SetAsChild(
-        (CefWindowHandle)parent_xid,
-        CefRect(0, 0, 800, 600));
 
     CefBrowserSettings browser_settings;
 
     // 4. Create the browser
     CefRefPtr<SimpleHandler> handler(new SimpleHandler());
-    CefBrowserHost::CreateBrowser(window_info,
+    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, 800, 600),
                                   handler,
                                   "file:///",
                                   browser_settings,
