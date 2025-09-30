@@ -4,7 +4,7 @@ CEF_VERSION := cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185
 CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185_linux64.tar.bz2
 CEF_TARBALL := cef.tar.bz2
 CEF_DIR := third_party/cef
-CEF_BUILD := Release
+CEF_BUILD_TYPE := Release
 
 PKG_CONFIG ?= pkgconf
 
@@ -66,10 +66,11 @@ clean:
 
 DIST_DIR := dist
 DIST_CEF_FILES := \
-    $(CEF_BUILD)/v8_context_snapshot.bin \
-    $(CEF_BUILD)/libEGL.so \
-    $(CEF_BUILD)/libGLESv2.so \
-    $(CEF_BUILD)/libcef.so \
+    $(CEF_BUILD_TYPE)/v8_context_snapshot.bin \
+    $(CEF_BUILD_TYPE)/libEGL.so \
+    $(CEF_BUILD_TYPE)/libGLESv2.so \
+    $(CEF_BUILD_TYPE)/libcef.so \
+    $(CEF_BUILD_TYPE)/libvk_swiftshader.so \
     Resources/locales \
     Resources/icudtl.dat \
     Resources/chrome_100_percent.pak \
