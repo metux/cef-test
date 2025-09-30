@@ -77,13 +77,13 @@ int main(int argc, char* argv[]) {
 
     // 2. Parent window (XID) from host app
     // For example, read from argv or obtained via IPC
-    Window parent_xid = 1;
+    Window parent_xid = 0x420000b;
 //    Window parent_xid = strtoul(argv[1], nullptr, 0);
 
     // 3. WindowInfo: child mode
     CefWindowInfo window_info;
-//    int width = 800, height = 600;
-//    window_info.SetAsChild((CefWindowHandle)parent_xid, CefRect(0, 0, width, height));
+    int width = 800, height = 600;
+    window_info.SetAsChild((CefWindowHandle)parent_xid, CefRect(0, 0, width, height));
 
     CefBrowserSettings browser_settings;
 
