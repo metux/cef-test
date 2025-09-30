@@ -47,6 +47,10 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+    printf("argc=%d\n", argc);
+    for (int x=0; x<argc; x++)
+        printf("arg %d: \"%s\"\n", argc, argv[x]);
+
     // 1. Initialize CEF
     CefMainArgs main_args(argc, argv);
     CefRefPtr<SimpleApp> app = new SimpleApp();
