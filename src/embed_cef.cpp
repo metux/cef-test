@@ -54,7 +54,6 @@ public:
 std::filesystem::path cwd  = std::filesystem::current_path();
 std::string resources_path = cwd.string();
 std::string locales_path   = (cwd / "locales").string();
-std::string cache_path     = (cwd / "cache").string();
 
 static bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
@@ -92,17 +91,15 @@ int main(int argc, char* argv[])
 
     uint32_t parent_xid = 0;
     if (argc > 1) {
-        char *endptr;
-        parent_xid = strtol(argv[1], &endptr, 16);
-        printf("parsing window id: %s -- %ld %lX\n", argv[1], parent_xid, parent_xid);
+        parent_xid = strtol(argv[1], NULL, 16);
+        printf("parsing window id: %lX\n", parent_xid);
     }
 
     CefSettings settings;
-    settings.no_sandbox = true;
-
+    settings.no_sandbox = false;
     CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
     CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
-    CefString(&settings.cache_path).FromASCII(cache_path.c_str());
+    CefString(&settings.cache_path).FromASCII(NULL); /* only in-memory */
 
     /* dont pass it our actual args */
     CefRefPtr<SimpleApp> app = new SimpleApp();
