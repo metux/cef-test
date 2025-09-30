@@ -17,7 +17,7 @@ CXXFLAGS := -g -std=c++17 -O2 -I$(CEF_DIR) -Wno-unused $(X11_CFLAGS)
 LDFLAGS := -Wl,-rpath,. -pthread -ldl $(X11_LIBS)
 
 # Sources
-SRCS := embed_cef.cpp
+SRCS := src/embed_cef.cpp
 OBJS := $(SRCS:.cpp=.o)
 BIN := embed_cef
 
