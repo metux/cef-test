@@ -16,12 +16,13 @@
 #include "include/internal/cef_linux.h"
 
 class SimpleHandler : public CefClient,
-                      public CefLifeSpanHandler {
+                      public CefLifeSpanHandler,
+                      public CefKeyboardHandler {
 public:
     SimpleHandler() : browser_count_(0) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
-        return this;
+        return this;  // MUST return the LifeSpan handler
     }
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
@@ -38,6 +39,54 @@ public:
         if (browser_count_-- <= 0) {
             CefQuitMessageLoop();
         }
+    }
+
+    virtual bool OnBeforePopup(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        const CefString& target_url,
+        const CefString& target_frame_name,
+        CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+        bool user_gesture,
+        const CefPopupFeatures& popupFeatures,
+        CefWindowInfo& windowInfo,
+        CefRefPtr<CefClient>& client,
+        CefBrowserSettings& settings,
+        bool* no_javascript_access)
+    {
+        printf("not opening any new window\n");
+        // Prevent any new popup
+        return true; // Returning true cancels popup creation
+    }
+
+    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override {
+        return this;
+    }
+
+    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+                               const CefKeyEvent& event,
+                               CefEventHandle os_event,
+                               bool* is_keyboard_shortcut) override
+    {
+        /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
+        if (event.type == KEYEVENT_RAWKEYDOWN &&
+            (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
+
+            switch (event.windows_key_code) {
+                case 'N': /* CTRL-N new tab */
+                case 'T': /* CTRL-T new window */
+                case 'B': /* CTRL-B bookmarks window */
+                case 'D': /* CTRL-D add bookmark */
+                case 'W': /* CTRL-W close window */
+                case 'P': /* CTRL-P print */
+                case 'J': /* CTRL-J downloads window */
+                case 'M': /* CTRL-SHIFT-M switch user */
+                case 'H': /* CTRL-H history window */
+                    return true;
+            }
+        }
+
+        return false;
     }
 
 private:
