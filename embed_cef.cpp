@@ -1,5 +1,7 @@
 #include <X11/Xlib.h>
 #include <iostream>
+#include <list>
+#include <filesystem>
 
 #include "include/capi/cef_app_capi.h"
 #include "include/cef_app.h"
@@ -12,7 +14,7 @@
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler {
 public:
-    SimpleHandler() {}
+    SimpleHandler() : browser_count_(0) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
         return this;
@@ -21,24 +23,25 @@ public:
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         browser_ = browser;
+        browser_count_++;
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         browser_ = nullptr;
+        browser_count_--;
+
+        if (browser_count_-- <= 0) {
+            CefQuitMessageLoop();
+        }
     }
 
 private:
     CefRefPtr<CefBrowser> browser_;
+    std::atomic<int> browser_count_;
 
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
-
-// horrible hack
-#define MYDIR "/home/nekrad/src/netcom/ceftest"
-
-#include <filesystem>
-std::string abs_path = std::filesystem::absolute("third_party/cef/Release").string();
 
 class SimpleApp : public CefApp {
 public:
@@ -46,7 +49,37 @@ public:
     IMPLEMENT_REFCOUNTING(SimpleApp);
 };
 
-int main(int argc, char* argv[]) {
+int already_in = 0;
+
+int main(int argc, char* argv[])
+{
+    for (int x=1; x<argc; x++) {
+        if (strncmp(argv[x], "--type=", 7)==0) {
+            printf("SUBPROCESSES %s\n", argv[x]);
+            already_in = 1;
+        }
+    }
+
+    if (already_in) {
+        printf("ALREADY IN\n");
+    }
+    else {
+        printf("FIRST PROCESS\n");
+    }
+
+    /* parse cmdline args */
+
+    char *new_argv[argc] = { 0 };
+    int new_argc = 0;
+
+    if (argc < 1) {
+        fprintf(stderr, "something's wrong with args: argc = 0\n");
+        return 1;
+    }
+
+    new_argv[0] = argv[0];
+    new_argc = 1;
+
     printf("argc=%d\n", argc);
     for (int x=0; x<argc; x++)
         printf("arg %d: \"%s\"\n", argc, argv[x]);
