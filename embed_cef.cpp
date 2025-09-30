@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     // 3. WindowInfo: child mode
     CefWindowInfo window_info;
     int width = 800, height = 600;
-    window_info.SetAsChild((CefWindowHandle)parent_xid, CefRect(0, 0, width, height));
+//    window_info.SetAsChild((CefWindowHandle)parent_xid, CefRect(0, 0, width, height));
 
     CefBrowserSettings browser_settings;
 

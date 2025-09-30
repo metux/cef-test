@@ -63,7 +63,7 @@ fetch_cef:
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(BIN) *.a *.so *.bin *.pak *.dat cache locales
+	rm -Rf $(OBJS) $(BIN) *.a *.so *.bin *.pak *.dat cache locales extensions
 
 CEF_BUILD := Release
 
@@ -78,6 +78,8 @@ run: embed_cef
 	ln -sf ./third_party/cef/Resources/chrome_200_percent.pak chrome_200_percent.pak
 	ln -sf ./third_party/cef/Resources/resources.pak resources.pak
 
-	./$(BIN) 112
+	./$(BIN)
+
+#	./$(BIN) 112
 #	gdb ./$(BIN)
 #	strace -f ./$(BIN)
