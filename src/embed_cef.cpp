@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     char exe_path[4096];
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
     if (len == -1) {
-        perror("readlink");
+        perror("readlink failed");
         return 1;
     }
     exe_path[len] = '\0'; // Null-terminate
@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
 
     printf("Executable: %s\n", exe_path);
 
-    std::filesystem::path cwd  = std::filesystem::current_path();
-    std::string resources_path = cwd.string();
-    std::string locales_path   = (cwd / "locales").string();
+    std::string basepath = std::string(exe_path);
+    std::string resources_path = basepath;
+    std::string locales_path = basepath + "/locales";
 
     /* parse cmdline args */
     if (argc < 1) {
@@ -113,6 +113,10 @@ int main(int argc, char* argv[])
     CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
     CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
     CefString(&settings.cache_path).FromASCII(NULL); /* only in-memory */
+    // CefString(&settings.log_file).FromASCII("cef.log");
+    settings.log_severity = LOGSEVERITY_VERBOSE;
+//    settings.background_color = CefColorSetARGB(255, 0, 0, 255);
+    settings.background_color = CefColorSetARGB(77, 66, 55, 255);
 
     /* dont pass it our actual args */
     CefRefPtr<SimpleApp> app = new SimpleApp();
