@@ -25,12 +25,15 @@ PROG_CFLAGS := $(CEF_CFLAGS) $(X11_CFLAGS) $(WRAPPER_CFLAGS)
 CFLAGS += $(PROG_CFLAGS)
 CXXFLAGS += $(PROG_CFLAGS)
 
-.PHONY: all clean fetch_cef bundle run
+.PHONY: prepare_deps all clean bundle run
 
 all: bundle
 
+prepare_deps:
+	$(MAKE) -C cefsdk
+
 # Rule to build the binary
-$(BIN): fetch_cef $(OBJS) $(WRAPPER_LIB)
+$(BIN): prepare_deps $(OBJS) $(WRAPPER_LIB)
 	$(CXX) -o $@ $(OBJS) $(PROG_CFLAGS) $(PROG_LIBS) $(LDFLAGS)
 
 $(CEF_DIR)/libcef_dll/%.o: $(CEF_DIR)/libcef_dll/%.cc
@@ -39,18 +42,6 @@ $(CEF_DIR)/libcef_dll/%.o: $(CEF_DIR)/libcef_dll/%.cc
 # Build the wrapper static library
 $(WRAPPER_LIB): $(WRAPPER_OBJS)
 	$(AR) rcs $@ $(WRAPPER_OBJS)
-
-# Fetch and extract CEF if not present
-fetch_cef:
-	@if [ ! -d "$(CEF_DIR)" ]; then \
-            echo ">>> Downloading CEF $(CEF_VERSION)" && \
-            mkdir -p third_party && \
-            curl -L -o $(CEF_TARBALL) $(CEF_URL) && \
-            tar -xjf $(CEF_TARBALL) -C third_party && \
-            rm -f $(CEF_TARBALL) && \
-            mv third_party/cef_binary_* $(CEF_DIR) && \
-            echo ">>> CEF unpacked to $(CEF_DIR)" ; \
-        fi
 
 clean:
 	rm -Rf src/*.o *.o $(BIN) *.a *.so $(DIST_DIR)
