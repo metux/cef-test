@@ -16,8 +16,8 @@ CEF_CFLAGS := -I$(CEF_DIR)
 
 # Compiler / flags
 CXX := g++
-CXXFLAGS := -g -std=c++17 -O2 -Wno-unused $(X11_CFLAGS) $(CEF_CFLAGS)
-LDFLAGS := -Wl,-rpath,. -pthread $(X11_LIBS) $(CEF_LIBS)
+CXXFLAGS := -g -std=c++17 -O2 -Wno-unused
+LDFLAGS := -Wl,-rpath,. -pthread
 
 # Sources
 SRCS := src/embed_cef.c src/cefhelper.cpp
@@ -38,6 +38,9 @@ WRAPPER_LIBS := $(WRAPPER_LIB)
 
 PROG_LIBS := $(CEF_LIBS) $(X11_LIBS) $(WRAPPER_LIBS)
 PROG_CFLAGS := $(CEF_CFLAGS) $(X11_CFLAGS) $(WRAPPER_CFLAGS)
+
+CFLAGS += $(PROG_CFLAGS)
+CXXFLAGS += $(PROG_CFLAGS)
 
 .PHONY: all clean fetch_cef bundle run
 
