@@ -47,24 +47,11 @@ clean:
 	rm -Rf src/*.o *.o $(BIN) *.a *.so $(DIST_DIR)
 
 DIST_DIR := dist
-DIST_CEF_FILES := \
-    $(CEF_BUILD_TYPE)/v8_context_snapshot.bin \
-    $(CEF_BUILD_TYPE)/libEGL.so \
-    $(CEF_BUILD_TYPE)/libGLESv2.so \
-    $(CEF_BUILD_TYPE)/libcef.so \
-    $(CEF_BUILD_TYPE)/libvk_swiftshader.so \
-    Resources/locales \
-    Resources/icudtl.dat \
-    Resources/chrome_100_percent.pak \
-    Resources/chrome_200_percent.pak \
-    Resources/resources.pak
-
-DIST_FILES := $(addprefix $(CEF_DIR)/, $(DIST_CEF_FILES))
 
 bundle: $(BIN)
 	rm -Rf $(DIST_DIR)
 	mkdir -p $(DIST_DIR)
-	for fn in $(DIST_FILES) ; do cp -R $$fn $(DIST_DIR) ; done
+	$(MAKE) -C cefsdk install-dist DIST_DIR=$(abspath $(DIST_DIR))
 	cp embed_cef $(DIST_DIR)
 
 run: $(BIN) bundle
