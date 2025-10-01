@@ -7,6 +7,8 @@
 
 #include <stdbool.h>
 
+#include "cefhelper.h"
+
 #include "include/capi/cef_app_capi.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
@@ -54,7 +56,6 @@ public:
         CefBrowserSettings& settings,
         bool* no_javascript_access)
     {
-        printf("not opening any new window\n");
         // Prevent any new popup
         return true; // Returning true cancels popup creation
     }
@@ -102,7 +103,7 @@ public:
     IMPLEMENT_REFCOUNTING(SimpleApp);
 };
 
-static bool check_cef_subprocess(int argc, char *argv[]) {
+bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
         if (strncmp(argv[x], "--type=", 7)==0)
@@ -151,26 +152,21 @@ static CefSettings make_settings(void) {
     return settings;
 }
 
-int main(int argc, char* argv[])
+int cefhelper_subprocess(int argc, char *argv[]) {
+    CefMainArgs main_args(argc, argv);
+    CefRefPtr<SimpleApp> app = new SimpleApp();
+    return CefExecuteProcess(main_args, app, nullptr);
+}
+
+int cefhelper_run(
+    uint32_t parent_xid,
+    int width,
+    int height,
+    const char *url)
 {
-    /* just pass control to CEF if we're in a subprocess */
-    if (check_cef_subprocess(argc, argv)) {
-        CefMainArgs main_args(argc, argv);
-        CefRefPtr<SimpleApp> app = new SimpleApp();
-        int exit_code = CefExecuteProcess(main_args, app, nullptr);
-        if (exit_code >= 0) return exit_code;
-        return 0;
-    }
-
-    uint32_t parent_xid = 0;
-    if (argc > 1) {
-        parent_xid = strtol(argv[1], NULL, 16);
-        printf("parsing window id: %lX\n", parent_xid);
-    }
-
     /* dont pass it our actual args */
     CefRefPtr<SimpleApp> app = new SimpleApp();
-    if (!CefInitialize(CefMainArgs(1, argv),
+    if (!CefInitialize(CefMainArgs(0, NULL),
                        make_settings(),
                        app.get(),
                        nullptr)) {
@@ -178,9 +174,9 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, 800, 600),
+    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
                                   new SimpleHandler(),
-                                  "file:///",
+                                  url,
                                   make_browser_settings(),
                                   nullptr,
                                   nullptr);
