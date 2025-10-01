@@ -97,9 +97,53 @@ private:
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
 
-class SimpleApp : public CefApp {
+class SimpleApp : public CefApp,
+                  public CefBrowserProcessHandler {
 public:
     SimpleApp() {}
+
+    // Return myself as browser process handler
+    CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override {
+        return this;
+    }
+
+    virtual void OnBeforeCommandLineProcessing(
+            const CefString& process_type,
+            CefRefPtr<CefCommandLine> command_line) override
+    {
+        // Disable Segmentation Platform
+        command_line->AppendSwitch("disable-segmentation-platform");
+
+        // Disable ML / Optimization systems
+        command_line->AppendSwitch("disable-machine-learning");
+        command_line->AppendSwitch("disable-optimization-guide");
+
+        // Disable reporting/telemetry
+        command_line->AppendSwitch("disable-domain-reliability");
+        command_line->AppendSwitch("disable-background-networking");
+
+        // Disable spellcheck / translate
+        command_line->AppendSwitch("disable-spell-checking");
+        command_line->AppendSwitch("disable-translate");
+
+        // Disable safe browsing (removes Google blocklists etc.)
+        command_line->AppendSwitch("disable-client-side-phishing-detection");
+        command_line->AppendSwitch("disable-component-update");
+        command_line->AppendSwitch("safe-browsing-disable-auto-update");
+        command_line->AppendSwitch("safebrowsing-disable-download-protection");
+
+        // Disable metrics / crash reporting
+        command_line->AppendSwitch("disable-metrics");
+        command_line->AppendSwitch("disable-metrics-reporting");
+
+        // Keep GPU minimal (optional)
+        command_line->AppendSwitch("disable-software-rasterizer");
+        command_line->AppendSwitch("disable-gpu-shader-disk-cache");
+
+        // don't write trash to filesystem
+        command_line->AppendSwitch("incognito");
+    }
+
     IMPLEMENT_REFCOUNTING(SimpleApp);
 };
 
@@ -144,7 +188,7 @@ static CefSettings make_settings(void) {
     settings.no_sandbox = false;
     CefString(&settings.resources_dir_path).FromASCII(exe_path);
     CefString(&settings.locales_dir_path).FromASCII(locales_path);
-    CefString(&settings.cache_path).FromASCII(NULL); /* only in-memory */
+    CefString(&settings.cache_path).FromASCII(""); /* only in-memory */
     // CefString(&settings.log_file).FromASCII("cef.log");
     CefString(&settings.root_cache_path).FromASCII(root_cache_path);
     settings.log_severity = LOGSEVERITY_VERBOSE;
