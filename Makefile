@@ -11,10 +11,13 @@ PKG_CONFIG ?= pkgconf
 X11_LIBS := $(shell $(PKG_CONFIG) --libs x11 xcursor xext)
 X11_CFLAGS := $(shell $(PKG_CONFIG) --cflags x11 xcursor xext)
 
+CEF_LIBS := -L$(CEF_DIR)/$(CEF_BUILD_TYPE) -lcef
+CEF_CFLAGS := -I$(CEF_DIR)
+
 # Compiler / flags
 CXX := g++
-CXXFLAGS := -g -std=c++17 -O2 -I$(CEF_DIR) -Wno-unused $(X11_CFLAGS)
-LDFLAGS := -Wl,-rpath,. -pthread -ldl $(X11_LIBS)
+CXXFLAGS := -g -std=c++17 -O2 -Wno-unused $(X11_CFLAGS) $(CEF_CFLAGS)
+LDFLAGS := -Wl,-rpath,. -pthread $(X11_LIBS) $(CEF_LIBS)
 
 # Sources
 SRCS := src/embed_cef.c src/cefhelper.cpp
@@ -22,6 +25,7 @@ OBJS := $(SRCS:.cpp=.o)
 OBJS := $(OBJS:.c=.o)
 BIN := embed_cef
 
+# FIXME: this wrapper library could become a separate shared library
 WRAPPER_SRCS := $(wildcard $(CEF_DIR)/libcef_dll/*.cc) \
                 $(wildcard $(CEF_DIR)/libcef_dll/base/*.cc) \
                 $(wildcard $(CEF_DIR)/libcef_dll/wrapper/*.cc) \
@@ -30,6 +34,10 @@ WRAPPER_SRCS := $(wildcard $(CEF_DIR)/libcef_dll/*.cc) \
 
 WRAPPER_OBJS := $(WRAPPER_SRCS:.cc=.o)
 WRAPPER_LIB := libcef_lib.a
+WRAPPER_LIBS := $(WRAPPER_LIB)
+
+PROG_LIBS := $(CEF_LIBS) $(X11_LIBS) $(WRAPPER_LIBS)
+PROG_CFLAGS := $(CEF_CFLAGS) $(X11_CFLAGS) $(WRAPPER_CFLAGS)
 
 .PHONY: all clean fetch_cef bundle run
 
@@ -37,7 +45,7 @@ all: bundle
 
 # Rule to build the binary
 $(BIN): fetch_cef $(OBJS) $(WRAPPER_LIB)
-	$(CXX) -o $@ $(OBJS) $(WRAPPER_LIB) -L$(CEF_DIR)/Release -lcef $(LDFLAGS)
+	$(CXX) -o $@ $(OBJS) $(PROG_CFLAGS) $(PROG_LIBS) $(LDFLAGS)
 
 $(CEF_DIR)/libcef_dll/%.o: $(CEF_DIR)/libcef_dll/%.cc
 	$(CXX) $(CXXFLAGS) -I$(CEF_DIR) -c $< -o $@ -DWRAPPING_CEF_SHARED
@@ -58,12 +66,8 @@ fetch_cef:
             echo ">>> CEF unpacked to $(CEF_DIR)" ; \
         fi
 
-# Compile .cpp → .o
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
 clean:
-	rm -Rf $(OBJS) $(BIN) *.a *.so $(DIST_DIR)
+	rm -Rf src/*.o *.o $(BIN) *.a *.so $(DIST_DIR)
 
 DIST_DIR := dist
 DIST_CEF_FILES := \
@@ -80,11 +84,12 @@ DIST_CEF_FILES := \
 
 DIST_FILES := $(addprefix $(CEF_DIR)/, $(DIST_CEF_FILES))
 
-bundle: embed_cef
+bundle: $(BIN)
 	rm -Rf $(DIST_DIR)
 	mkdir -p $(DIST_DIR)
 	for fn in $(DIST_FILES) ; do cp -R $$fn $(DIST_DIR) ; done
 	cp embed_cef $(DIST_DIR)
 
-run: embed_cef bundle
+run: $(BIN) bundle
+	strip --strip-unneeded $(BIN)
 	cd $(DIST_DIR) && ./$(BIN) 0x480000a

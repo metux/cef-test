@@ -1,5 +1,3 @@
-#include <X11/Xlib.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 
