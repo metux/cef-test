@@ -17,7 +17,17 @@ CEFSDK_DIST_FILES := \
     $(CEFSDK_DIR)/Resources/chrome_200_percent.pak \
     $(CEFSDK_DIR)/Resources/resources.pak
 
-all: $(CEFSDK_MARKER)
+# FIXME: this wrapper library could become a separate shared library
+WRAPPER_SRCS := $(wildcard $(CEFSDK_DIR)/libcef_dll/*.cc) \
+                $(wildcard $(CEFSDK_DIR)/libcef_dll/base/*.cc) \
+                $(wildcard $(CEFSDK_DIR)/libcef_dll/wrapper/*.cc) \
+                $(wildcard $(CEFSDK_DIR)/libcef_dll/ctocpp/*.cc) \
+                $(wildcard $(CEFSDK_DIR)/libcef_dll/cpptoc/*.cc) \
+
+WRAPPER_OBJS := $(WRAPPER_SRCS:.cc=.o)
+WRAPPER_LIB := libcef_lib.a
+
+all: $(CEFSDK_MARKER) $(WRAPPER_LIB)
 
 $(CEFSDK_TARBALL):
 	@echo ">>> Downloading CEF $(CEF_VERSION)"
@@ -32,9 +42,17 @@ $(CEFSDK_MARKER): $(CEFSDK_TARBALL)
 	@touch $@
 
 clean:
-	@rm -Rf $(CEFSDK_DIR)
+	@rm -Rf $(CEFSDK_DIR) *.a *.so *.o
 
 install-dist:
 	@[ "$(DIST_DIR)" ] || (echo "missing DIST_DIR variable" ; exit 1)
 	mkdir -p $(DIST_DIR)
 	for fn in $(CEFSDK_DIST_FILES) ; do cp -R $$fn $(DIST_DIR) ; done
+
+
+$(CEFSDK_DIR)/libcef_dll/%.o: $(CEFSDK_DIR)/libcef_dll/%.cc
+	$(CXX) $(CXXFLAGS) -I$(CEFSDK_DIR) -c $< -o $@ -DWRAPPING_CEF_SHARED
+
+# Build the wrapper static library
+$(WRAPPER_LIB): $(WRAPPER_OBJS)
+	$(AR) rcs $@ $(WRAPPER_OBJS)

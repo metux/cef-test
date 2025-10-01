@@ -3,7 +3,6 @@ CEF_VERSION := cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185
 #CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_$(CEF_VERSION)_linux64.tar.bz2
 CEF_URL := https://cef-builds.spotifycdn.com/cef_binary_140.1.14%2Bgeb1c06e%2Bchromium-140.0.7339.185_linux64.tar.bz2
 CEF_TARBALL := cef.tar.bz2
-# CEF_DIR := $(srcroot)/third_party/cef
 CEF_DIR := $(srcroot)/cefsdk/cef
 CEF_BUILD_TYPE := Release
 
