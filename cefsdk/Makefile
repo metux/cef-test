@@ -25,7 +25,7 @@ WRAPPER_SRCS := $(wildcard $(CEFSDK_DIR)/libcef_dll/*.cc) \
                 $(wildcard $(CEFSDK_DIR)/libcef_dll/cpptoc/*.cc) \
 
 WRAPPER_OBJS := $(WRAPPER_SRCS:.cc=.o)
-WRAPPER_LIB := libcef_lib.a
+WRAPPER_LIB := libcefwrapper.a
 
 all: $(CEFSDK_MARKER) $(WRAPPER_LIB)
 
