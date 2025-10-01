@@ -1,5 +1,10 @@
 srcroot := .
 
+# the parent window XID for test run
+# you should run some program where the browser shall be embedded
+# into and set the target window ID here
+TEST_PARENT_WINDOW_ID ?= 0x480000a
+
 include $(srcroot)/conf.mk
 
 # Sources
@@ -38,4 +43,4 @@ bundle: $(BIN)
 
 run: $(BIN) bundle
 	strip --strip-unneeded $(BIN)
-	cd $(DIST_DIR) && ./$(BIN) 0x480000a
+	cd $(DIST_DIR) && ./$(BIN) $(TEST_PARENT_WINDOW_ID)
