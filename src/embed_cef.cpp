@@ -124,7 +124,7 @@ static CefBrowserSettings make_browser_settings(void) {
 }
 
 static CefSettings make_settings(void) {
-    char exe_path[4096];
+    char exe_path[PATH_MAX];
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
     if (len == -1) {
         perror("readlink failed");
@@ -133,16 +133,19 @@ static CefSettings make_settings(void) {
     exe_path[len] = '\0'; // Null-terminate
     dirname(exe_path);
 
-    std::string basepath = std::string(exe_path);
-    std::string resources_path = basepath;
-    std::string locales_path = basepath + "/locales";
+    char locales_path[PATH_MAX] = { 0 };
+    snprintf(locales_path, sizeof(locales_path)-1, "%s/locales", exe_path);
+
+    char root_cache_path[PATH_MAX] = { 0 };
+    snprintf(root_cache_path, sizeof(root_cache_path)-1, "/tmp/cef_cache/%d", getpid());
 
     CefSettings settings;
     settings.no_sandbox = false;
-    CefString(&settings.resources_dir_path).FromASCII(resources_path.c_str());
-    CefString(&settings.locales_dir_path).FromASCII(locales_path.c_str());
+    CefString(&settings.resources_dir_path).FromASCII(exe_path);
+    CefString(&settings.locales_dir_path).FromASCII(locales_path);
     CefString(&settings.cache_path).FromASCII(NULL); /* only in-memory */
     // CefString(&settings.log_file).FromASCII("cef.log");
+    CefString(&settings.root_cache_path).FromASCII(root_cache_path);
     settings.log_severity = LOGSEVERITY_VERBOSE;
 
     return settings;
