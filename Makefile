@@ -19,6 +19,7 @@ LDFLAGS := -Wl,-rpath,. -pthread -ldl $(X11_LIBS)
 # Sources
 SRCS := src/embed_cef.c src/cefhelper.cpp
 OBJS := $(SRCS:.cpp=.o)
+OBJS := $(OBJS:.c=.o)
 BIN := embed_cef
 
 WRAPPER_SRCS := $(wildcard $(CEF_DIR)/libcef_dll/*.cc) \
