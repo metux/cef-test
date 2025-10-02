@@ -1,12 +1,17 @@
 #ifndef MINIHTTP_H
 #define MINIHTTP_H
 
+#include <pthread.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct _httpd_server {
-    void *privdata;
+    bool initialized;
+    pthread_mutex_t handlers_lock;
+    struct handler_entry *handlers;
 } http_server;
 
 /* Handler function type:
@@ -22,7 +27,7 @@ typedef void (*http_handler_fn)(http_server *server, int client_fd, const char *
 int httpd_register_handler(http_server *server, const char *prefix, http_handler_fn fn, void *user_data);
 
 /* Start serving. Blocks forever. */
-int httpd_serve(http_server *server, const char *port, const char *docroot);
+int httpd_serve(http_server *server, const char *port);
 
 #ifdef __cplusplus
 }

@@ -23,5 +23,5 @@ static void counter_handler(http_server *server, int fd, const char *path, void 
 int main(int argc, char **argv) {
     http_server srv = { 0 };
     httpd_register_handler(&srv, "/counter", counter_handler, NULL);
-    return httpd_serve(&srv, "8080", ".");
+    return httpd_serve(&srv, "8080");
 }

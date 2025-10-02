@@ -25,19 +25,26 @@ struct handler_entry {
     struct handler_entry *next;
 };
 
-static struct handler_entry *handlers = NULL;
-static pthread_mutex_t handlers_lock = PTHREAD_MUTEX_INITIALIZER;
+static void httpd_init(http_server *server) {
+    if (server->initialized)
+        return;
+
+    server->handlers = NULL;
+    pthread_mutex_init(&server->handlers_lock, NULL);
+}
 
 int httpd_register_handler(http_server *server, const char *prefix, http_handler_fn fn, void *user_data) {
+    httpd_init(server);
+
     struct handler_entry *h = calloc(1, sizeof(*h));
     if (!h) return -1;
     h->prefix = strdup(prefix);
     h->fn = fn;
     h->user = user_data;
-    pthread_mutex_lock(&handlers_lock);
-    h->next = handlers;
-    handlers = h;
-    pthread_mutex_unlock(&handlers_lock);
+    pthread_mutex_lock(&server->handlers_lock);
+    h->next = server->handlers;
+    server->handlers = h;
+    pthread_mutex_unlock(&server->handlers_lock);
     return 0;
 }
 
@@ -102,7 +109,6 @@ static void send_text(int fd, const char *status, const char *text) {
 
 struct client_ctx {
     int fd;
-    char docroot[1024];
     http_server *server;
 };
 
@@ -130,19 +136,19 @@ static void *client_thread(void *arg) {
     if (q) *q = 0;
 
     /* check handlers */
-    pthread_mutex_lock(&handlers_lock);
-    struct handler_entry *h = handlers;
+    pthread_mutex_lock(&ctx->server->handlers_lock);
+    struct handler_entry *h = ctx->server->handlers;
     while (h) {
         if (strncmp(path, h->prefix, strlen(h->prefix)) == 0) {
             http_handler_fn fn = h->fn;
             void *ud = h->user;
-            pthread_mutex_unlock(&handlers_lock);
+            pthread_mutex_unlock(&ctx->server->handlers_lock);
             fn(ctx->server, ctx->fd, path, ud);
             goto done;
         }
         h = h->next;
     }
-    pthread_mutex_unlock(&handlers_lock);
+    pthread_mutex_unlock(&ctx->server->handlers_lock);
     send_text(ctx->fd, "404 Not Found", "Not Found\n");
 
 done:
@@ -153,7 +159,7 @@ done:
 
 /* ------------ server loop ------------ */
 
-int httpd_serve(http_server *server, const char *port_str, const char *docroot) {
+int httpd_serve(http_server *server, const char *port_str) {
     int port = atoi(port_str);
     int srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv < 0) { perror("socket"); return -1; }
@@ -169,7 +175,7 @@ int httpd_serve(http_server *server, const char *port_str, const char *docroot) 
     if (bind(srv, (struct sockaddr*)&sa, sizeof(sa)) < 0) { perror("bind"); return -1; }
     if (listen(srv, 64) < 0) { perror("listen"); return -1; }
 
-    fprintf(stderr,"Serving %s on port %d\n", docroot, port);
+    fprintf(stderr,"Serving on port %d\n", port);
     for (;;) {
         struct sockaddr_in cli;
         socklen_t clilen = sizeof(cli);
@@ -179,7 +185,6 @@ int httpd_serve(http_server *server, const char *port_str, const char *docroot) 
         struct client_ctx *ctx = malloc(sizeof(*ctx));
         ctx->fd = cl;
         ctx->server = server;
-        strncpy(ctx->docroot, docroot, sizeof(ctx->docroot)-1);
 
         pthread_t tid;
         pthread_create(&tid, NULL, client_thread, ctx);
