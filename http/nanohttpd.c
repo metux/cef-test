@@ -96,6 +96,10 @@ static void send_text(int fd, const char *status, const char *text) {
     sendall(fd, text, strlen(text));
 }
 
+ssize_t nanohttpd_xfer_write_str(nanohttpd_xfer *xfer, const char *str) {
+    return sendall(xfer->fd, str, strlen(str));
+}
+
 /* ------------ request handler ------------ */
 
 struct client_ctx {

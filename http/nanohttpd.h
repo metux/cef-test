@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,8 @@ int nanohttpd_register_handler(nanohttpd_server *server,
 
 /* Start serving. Blocks forever. */
 int nanohttpd_serve(nanohttpd_server *server, const char *port);
+
+ssize_t nanohttpd_xfer_write_str(nanohttpd_xfer *xfer, const char *str);
 
 #ifdef __cplusplus
 }
