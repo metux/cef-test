@@ -1,5 +1,5 @@
 
-server: main.c minihttp.c
+server: main.c nanohttpd.c
 	$(CC) -std=c11 -O2 -Wall -pthread $^ -o $@
 
 clean:

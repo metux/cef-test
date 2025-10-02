@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
-#include "minihttp.h"
+#include "nanohttpd.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

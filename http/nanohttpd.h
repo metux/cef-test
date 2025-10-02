@@ -1,5 +1,5 @@
-#ifndef MICRO_HTTPD_H
-#define MICRO_HTTPD_H
+#ifndef NANO_HTTPD_H
+#define NANO_HTTPD_H
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -39,4 +39,4 @@ int nanohttpd_serve(nanohttpd_server *server, const char *port);
 }
 #endif
 
-#endif /* MICRO_HTTPD_H */
+#endif /* NANO_HTTPD_H */

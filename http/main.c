@@ -1,8 +1,9 @@
-#include "minihttp.h"
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "nanohttpd.h"
 
 /* Shared counter */
 static int counter = 0;
