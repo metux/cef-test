@@ -18,6 +18,9 @@ static void counter_handler(nanohttpd_xfer *xfer) {
     char resp[128];
     snprintf(resp, sizeof(resp), "cefserver\ncount=%d\n", n);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, resp);
+
+    cefhelper_loadurl("https://www.thur.de/");
+
     if (n==10) {
         fprintf(stderr, "counter reached limit. terminating server\n");
         exit(0);

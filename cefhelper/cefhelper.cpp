@@ -17,6 +17,8 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
 
+static CefRefPtr<CefBrowser> mainBrowser;
+
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler {
@@ -31,6 +33,7 @@ public:
         CEF_REQUIRE_UI_THREAD();
         browser_ = browser;
         browser_count_++;
+        mainBrowser = browser;
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
@@ -228,4 +231,36 @@ int cefhelper_run(
     CefRunMessageLoop();
     CefShutdown();
     return 0;
+}
+
+class LoadURLTask : public CefTask {
+public:
+    LoadURLTask(CefRefPtr<CefBrowser> b, std::string u) : browser(b), url(u) {}
+    void Execute() override {
+        if (browser)
+            browser->GetMainFrame()->LoadURL(url);
+    }
+private:
+    CefRefPtr<CefBrowser> browser;
+    std::string url;
+    IMPLEMENT_REFCOUNTING(LoadURLTask);
+};
+
+void cefhelper_loadurl(const char *url)
+{
+    if (mainBrowser)
+        fprintf(stderr, "GOT MAIN BROWSER\n");
+    else
+        fprintf(stderr, "NO MAIN BROWSER\n");
+
+    CefPostTask(TID_UI, new LoadURLTask(mainBrowser, url));
+
+//    mainBrowser->GetMainFrame()->LoadURL(url);
+
+//    CefRefPtr<CefBrowser> browser = mainBrowser;  // your global/active browser
+
+//    CefPostTask(TID_UI, [browser, url]() {
+//        if (browser)
+//            browser->GetMainFrame()->LoadURL(url);
+//    });
 }
