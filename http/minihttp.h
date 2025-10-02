@@ -19,12 +19,12 @@ typedef struct _httpd_server {
  * - path: request path (already URL-decoded, no query/fragment)
  * - user_data: pointer passed during handler registration
  */
-typedef void (*http_handler_fn)(nanohttpd_server *server, int client_fd, const char *path, void *user_data);
+typedef void (*nanohttpd_handler_fn)(nanohttpd_server *server, int client_fd, const char *path, void *user_data);
 
 /* Register a handler for a fixed path prefix.
  * Example: httpd_register_handler("/counter", counter_fn, NULL);
  */
-int httpd_register_handler(nanohttpd_server *server, const char *prefix, http_handler_fn fn, void *user_data);
+int httpd_register_handler(nanohttpd_server *server, const char *prefix, nanohttpd_handler_fn fn, void *user_data);
 
 /* Start serving. Blocks forever. */
 int httpd_serve(nanohttpd_server *server, const char *port);

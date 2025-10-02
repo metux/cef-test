@@ -20,7 +20,7 @@
 
 struct handler_entry {
     char *prefix;
-    http_handler_fn fn;
+    nanohttpd_handler_fn fn;
     void *user;
     struct handler_entry *next;
 };
@@ -33,7 +33,7 @@ static void httpd_init(nanohttpd_server *server) {
     pthread_mutex_init(&server->handlers_lock, NULL);
 }
 
-int httpd_register_handler(nanohttpd_server *server, const char *prefix, http_handler_fn fn, void *user_data) {
+int httpd_register_handler(nanohttpd_server *server, const char *prefix, nanohttpd_handler_fn fn, void *user_data) {
     httpd_init(server);
 
     struct handler_entry *h = calloc(1, sizeof(*h));
@@ -140,7 +140,7 @@ static void *client_thread(void *arg) {
     struct handler_entry *h = ctx->server->handlers;
     while (h) {
         if (strncmp(path, h->prefix, strlen(h->prefix)) == 0) {
-            http_handler_fn fn = h->fn;
+            nanohttpd_handler_fn fn = h->fn;
             void *ud = h->user;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
             fn(ctx->server, ctx->fd, path, ud);
