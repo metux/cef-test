@@ -195,7 +195,8 @@ int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
     if (listen(srv, 64) < 0) { perror("listen"); return -1; }
 
     fprintf(stderr,"Serving on port %d\n", port);
-    for (;;) {
+    server->running = true;
+    while (server->running) {
         struct sockaddr_in cli;
         socklen_t clilen = sizeof(cli);
         int cl = accept(srv, (struct sockaddr*)&cli, &clilen);

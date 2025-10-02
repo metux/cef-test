@@ -16,6 +16,7 @@ extern "C" {
 
 typedef struct {
     bool initialized;
+    bool running;
     pthread_mutex_t handlers_lock;
     struct handler_entry *handlers;
 } nanohttpd_server;

@@ -17,6 +17,10 @@ static void counter_handler(nanohttpd_xfer *xfer) {
     char resp[128];
     snprintf(resp, sizeof(resp), "Count=%d\n", n);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, resp);
+    if (n==10) {
+        fprintf(stderr, "counter reached limit. terminating server\n");
+        xfer->server->running = false;
+    }
 }
 
 int main(int argc, char **argv) {

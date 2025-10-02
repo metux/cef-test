@@ -1,5 +1,3 @@
-
-
 srcroot := ..
 
 include $(srcroot)/conf.mk
