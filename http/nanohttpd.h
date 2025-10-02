@@ -40,7 +40,19 @@ int nanohttpd_register_handler(nanohttpd_server *server,
 /* Start serving. Blocks forever. */
 int nanohttpd_serve(nanohttpd_server *server, const char *port);
 
-ssize_t nanohttpd_xfer_write_str(nanohttpd_xfer *xfer, const char *str);
+void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
+                               const char *response,
+                               const char *content_type,
+                               const char *data);
+
+void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
+                                  const char *content_type,
+                                  const char *data);
+
+#define NANOHTTPD_RESPONSE_OK              "200 OK"
+#define NANOHTTPD_RESPONSE_BAD_REQUEST     "400 Bad Request"
+#define NANOHTTPD_RESPONSE_NOT_FOUND       "404 Not Found"
+#define NANOHTTPD_RESPONSE_NOT_IMPLEMENTED "501 Not Implemented"
 
 #ifdef __cplusplus
 }

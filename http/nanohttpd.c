@@ -86,18 +86,21 @@ static ssize_t sendall(int fd, const void *buf, size_t len) {
 }
 
 /* Send simple text response */
-static void send_text(int fd, const char *status, const char *text) {
+void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
+                               const char *status,
+                               const char *content_type,
+                               const char *text)
+{
+    if (!content_type)
+        content_type = "text/plain";
+
     char header[256];
     int hdrlen = snprintf(header, sizeof(header),
                           "HTTP/1.0 %s\r\nContent-Length: %zu\r\n"
-                          "Content-Type: text/plain\r\n\r\n",
-                          status, strlen(text));
-    sendall(fd, header, hdrlen);
-    sendall(fd, text, strlen(text));
-}
-
-ssize_t nanohttpd_xfer_write_str(nanohttpd_xfer *xfer, const char *str) {
-    return sendall(xfer->fd, str, strlen(str));
+                          "Content-Type: %s\r\n\r\n",
+                          status, strlen(text), content_type);
+    sendall(xfer->fd, header, hdrlen);
+    sendall(xfer->fd, text, strlen(text));
 }
 
 /* ------------ request handler ------------ */
@@ -116,13 +119,24 @@ static void *client_thread(void *arg) {
         goto done;
     buf[n] = 0;
 
+    nanohttpd_xfer srv_xfer = {
+        .fd = ctx->fd,
+        .server = ctx->server,
+    };
+
     char method[16], path[1024], vers[32];
     if (sscanf(buf, "%15s %1023s %31s", method, path, vers) != 3) {
-        send_text(ctx->fd, "400 Bad Request", "Bad Request\n");
+        nanohttpd_xfer_reply_text(&srv_xfer,
+                                  NANOHTTPD_RESPONSE_BAD_REQUEST,
+                                  NULL,
+                                  "Bad Request\n");
         goto done;
     }
     if (strcmp(method,"GET") != 0) {
-        send_text(ctx->fd, "501 Not Implemented", "Only GET supported\n");
+        nanohttpd_xfer_reply_text(&srv_xfer,
+                                  NANOHTTPD_RESPONSE_NOT_IMPLEMENTED,
+                                  NULL,
+                                  "Only GET supported\n");
         goto done;
     }
 
@@ -149,7 +163,10 @@ static void *client_thread(void *arg) {
         h = h->next;
     }
     pthread_mutex_unlock(&ctx->server->handlers_lock);
-    send_text(ctx->fd, "404 Not Found", "Not Found\n");
+    nanohttpd_xfer_reply_text(&srv_xfer,
+                              NANOHTTPD_RESPONSE_NOT_FOUND,
+                              NULL,
+                              "Not Found\n");
 
 done:
     close(ctx->fd);
@@ -195,4 +212,11 @@ int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
 
     close(srv);
     return 0;
+}
+
+void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
+                                  const char *content_type,
+                                  const char *data)
+{
+    nanohttpd_xfer_reply_text(xfer, "200 OK", content_type, data);
 }

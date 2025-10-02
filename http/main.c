@@ -9,15 +9,6 @@
 static int counter = 0;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-static void write_reply_ok(nanohttpd_xfer *xfer, const char *content_type, const char *data)
-{
-    char buf[1024] = { 0 };
-    snprintf(buf, sizeof(buf),
-             "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n\r\n", content_type);
-    nanohttpd_xfer_write_str(xfer, buf);
-    nanohttpd_xfer_write_str(xfer, data);
-}
-
 static void counter_handler(nanohttpd_xfer *xfer) {
     pthread_mutex_lock(&lock);
     int n = ++counter;
@@ -25,7 +16,7 @@ static void counter_handler(nanohttpd_xfer *xfer) {
 
     char resp[128];
     snprintf(resp, sizeof(resp), "Count=%d\n", n);
-    write_reply_ok(xfer, "text/plain", resp);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, resp);
 }
 
 int main(int argc, char **argv) {
