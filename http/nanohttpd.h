@@ -14,14 +14,20 @@ typedef struct {
     struct handler_entry *handlers;
 } nanohttpd_server;
 
+typedef struct {
+    nanohttpd_server *server;
+    const char *path;
+    int fd;
+    void *ud;
+} nanohttpd_xfer;
+
 /* Handler function type:
  * - client_fd: socket to write HTTP response to
  * - path: request path (already URL-decoded, no query/fragment)
  * - user_data: pointer passed during handler registration
  */
 typedef void (*nanohttpd_handler_fn)(nanohttpd_server *server,
-                                     int client_fd,
-                                     const char *path,
+                                     nanohttpd_xfer *xfer,
                                      void *user_data);
 
 /* Register a handler for a fixed path prefix.

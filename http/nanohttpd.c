@@ -54,19 +54,6 @@ int nanohttpd_register_handler(nanohttpd_server *server,
 
 /* ------------ utilities ------------ */
 
-#if 0
-static const char *guess_mime(const char *path) {
-    const char *ext = strrchr(path, '.');
-    if (!ext) return "application/octet-stream";
-    ext++;
-    if (strcasecmp(ext,"html")==0) return "text/html";
-    if (strcasecmp(ext,"txt")==0)  return "text/plain";
-    if (strcasecmp(ext,"png")==0)  return "image/png";
-    if (strcasecmp(ext,"jpg")==0 || strcasecmp(ext,"jpeg")==0) return "image/jpeg";
-    return "application/octet-stream";
-}
-#endif
-
 static void urldecode(char *s) {
     char *dst = s;
     while (*s) {
@@ -147,7 +134,11 @@ static void *client_thread(void *arg) {
             nanohttpd_handler_fn fn = h->fn;
             void *ud = h->user;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
-            fn(ctx->server, ctx->fd, path, ud);
+            nanohttpd_xfer xfer = {
+                .fd = ctx->fd,
+                .path = path,
+            };
+            fn(ctx->server, &xfer, ud);
             goto done;
         }
         h = h->next;
