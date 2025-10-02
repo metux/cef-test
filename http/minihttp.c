@@ -25,16 +25,20 @@ struct handler_entry {
     struct handler_entry *next;
 };
 
-static void httpd_init(nanohttpd_server *server) {
+static void nanohttpd_init(nanohttpd_server *server) {
     if (server->initialized)
         return;
 
     server->handlers = NULL;
     pthread_mutex_init(&server->handlers_lock, NULL);
+    server->initialized = 1;
 }
 
-int httpd_register_handler(nanohttpd_server *server, const char *prefix, nanohttpd_handler_fn fn, void *user_data) {
-    httpd_init(server);
+int nanohttpd_register_handler(nanohttpd_server *server,
+                               const char *prefix,
+                               nanohttpd_handler_fn fn,
+                               void *user_data) {
+    nanohttpd_init(server);
 
     struct handler_entry *h = calloc(1, sizeof(*h));
     if (!h) return -1;
@@ -159,7 +163,9 @@ done:
 
 /* ------------ server loop ------------ */
 
-int httpd_serve(nanohttpd_server *server, const char *port_str) {
+int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
+    nanohttpd_init(server);
+
     int port = atoi(port_str);
     int srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv < 0) { perror("socket"); return -1; }

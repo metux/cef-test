@@ -22,6 +22,6 @@ static void counter_handler(nanohttpd_server *server, int fd, const char *path, 
 
 int main(int argc, char **argv) {
     nanohttpd_server srv = { 0 };
-    httpd_register_handler(&srv, "/counter", counter_handler, NULL);
-    return httpd_serve(&srv, "8080");
+    nanohttpd_register_handler(&srv, "/counter", counter_handler, NULL);
+    return nanohttpd_serve(&srv, "8080");
 }
