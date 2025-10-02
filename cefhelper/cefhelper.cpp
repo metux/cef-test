@@ -238,8 +238,9 @@ class LoadURLTask : public CefTask {
 public:
     LoadURLTask(CefRefPtr<CefBrowser> b, std::string u) : browser(b), url(u) {}
     void Execute() override {
-        if (browser)
-            browser->GetMainFrame()->LoadURL(url);
+        if (!browser)
+            return;
+        browser->GetMainFrame()->LoadURL(url);
     }
 private:
     CefRefPtr<CefBrowser> browser;
@@ -251,11 +252,12 @@ class ReloadTask : public CefTask {
 public:
     ReloadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
     void Execute() override {
-        if (browser) {
-            auto frame = browser->GetMainFrame();
-            auto url = frame->GetURL().ToString();
-            frame->LoadURL(url);
-        }
+        if (!browser)
+            return;
+
+        auto frame = browser->GetMainFrame();
+        auto url = frame->GetURL().ToString();
+        frame->LoadURL(url);
     }
 
 private:
@@ -263,12 +265,72 @@ private:
     IMPLEMENT_REFCOUNTING(ReloadTask);
 };
 
+class StopLoadTask : public CefTask {
+public:
+    StopLoadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    void Execute() override {
+        if (!browser)
+            return;
+
+//        auto host = browser->GetHost();
+//        host->StopLoading();
+        browser->GetMainFrame()->LoadURL("about:blank");
+    }
+
+private:
+    CefRefPtr<CefBrowser> browser;
+    IMPLEMENT_REFCOUNTING(StopLoadTask);
+};
+
+class GoBackTask: public CefTask {
+public:
+    GoBackTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    void Execute() override {
+        if (!browser)
+            return;
+//        browser->GetMainFrame()->GoBack();
+    }
+
+private:
+    CefRefPtr<CefBrowser> browser;
+    IMPLEMENT_REFCOUNTING(GoBackTask);
+};
+
+class GoForwardTask: public CefTask {
+public:
+    GoForwardTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    void Execute() override {
+        if (!browser)
+            return;
+//        browser->GetMainFrame()->GoForward();
+    }
+
+private:
+    CefRefPtr<CefBrowser> browser;
+    IMPLEMENT_REFCOUNTING(GoForwardTask);
+};
+
 void cefhelper_loadurl(const char *url)
 {
     CefPostTask(TID_UI, new LoadURLTask(mainBrowser, url));
 }
 
-void cefhelper_reload(const char *url)
+void cefhelper_reload(void)
 {
     CefPostTask(TID_UI, new ReloadTask(mainBrowser));
+}
+
+void cefhelper_stopload(void)
+{
+    CefPostTask(TID_UI, new StopLoadTask(mainBrowser));
+}
+
+void cefhelper_goback(void)
+{
+    CefPostTask(TID_UI, new GoBackTask(mainBrowser));
+}
+
+void cefhelper_goforward(void)
+{
+    CefPostTask(TID_UI, new GoForwardTask(mainBrowser));
 }

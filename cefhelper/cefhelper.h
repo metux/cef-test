@@ -13,6 +13,9 @@ extern "C" {
     bool check_cef_subprocess(int argc, char *argv[]);
     void cefhelper_loadurl(const char *url);
     void cefhelper_reload(void);
+    void cefhelper_stopload(void);
+    void cefhelper_goback(void);
+    void cefhelper_goforward(void);
 
 #ifdef __cplusplus
 }
