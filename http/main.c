@@ -1,0 +1,26 @@
+#include "minihttp.h"
+#include <stdio.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h>
+
+/* Shared counter */
+static int counter = 0;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+static void counter_handler(int fd, const char *path, void *ud) {
+    (void)path; (void)ud;
+    pthread_mutex_lock(&lock);
+    int n = ++counter;
+    pthread_mutex_unlock(&lock);
+
+    char resp[128];
+    snprintf(resp, sizeof(resp),
+             "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\nCount=%d\n", n);
+    write(fd, resp, strlen(resp));
+}
+
+int main(int argc, char **argv) {
+    httpd_register_handler("/counter", counter_handler, NULL);
+    return httpd_serve("8080", ".");
+}
