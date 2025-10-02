@@ -14,7 +14,15 @@ X11_CFLAGS := $(shell $(PKG_CONFIG) --cflags x11 xcursor xext)
 CEF_LIBS := -L$(CEF_DIR)/$(CEF_BUILD_TYPE) -lcef $(srcroot)/cefsdk/libcefwrapper.a
 CEF_CFLAGS := -I$(CEF_DIR)
 
+CEFHELPER_LIBS := $(srcroot)/cefhelper/libcefhelper.a
+CEFHELPER_CFLAGS := -I$(srcroot)/cefhelper
+
+NANOHTTPD_LIBS := $(srcroot)/nanohttpd/libnanohttpd.a
+NANOHTTPD_CFLAGS := -I$(srcroot)/nanohttpd
+
 # Compiler / flags
 CXX ?= g++
-CXXFLAGS += -g -std=c++17 -O2 -Wno-unused
-LDFLAGS += -Wl,-rpath,. -pthread
+CC ?= gcc
+CFLAGS += -ffunction-sections -fdata-sections -O2 -Wno-unused
+CXXFLAGS += $(CFLAGS) -g -std=c++17
+LDFLAGS += -Wl,-rpath,. -pthread -Wl,--gc-sections

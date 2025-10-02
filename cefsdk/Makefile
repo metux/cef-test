@@ -49,7 +49,6 @@ install-dist:
 	mkdir -p $(DIST_DIR)
 	for fn in $(CEFSDK_DIST_FILES) ; do cp -R $$fn $(DIST_DIR) ; done
 
-
 $(CEFSDK_DIR)/libcef_dll/%.o: $(CEFSDK_DIR)/libcef_dll/%.cc
 	$(CXX) $(CXXFLAGS) -I$(CEFSDK_DIR) -c $< -o $@ -DWRAPPING_CEF_SHARED
 
