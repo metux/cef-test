@@ -25,7 +25,7 @@ struct handler_entry {
     struct handler_entry *next;
 };
 
-static void httpd_init(http_server *server) {
+static void httpd_init(nanohttpd_server *server) {
     if (server->initialized)
         return;
 
@@ -33,7 +33,7 @@ static void httpd_init(http_server *server) {
     pthread_mutex_init(&server->handlers_lock, NULL);
 }
 
-int httpd_register_handler(http_server *server, const char *prefix, http_handler_fn fn, void *user_data) {
+int httpd_register_handler(nanohttpd_server *server, const char *prefix, http_handler_fn fn, void *user_data) {
     httpd_init(server);
 
     struct handler_entry *h = calloc(1, sizeof(*h));
@@ -109,7 +109,7 @@ static void send_text(int fd, const char *status, const char *text) {
 
 struct client_ctx {
     int fd;
-    http_server *server;
+    nanohttpd_server *server;
 };
 
 static void *client_thread(void *arg) {
@@ -159,7 +159,7 @@ done:
 
 /* ------------ server loop ------------ */
 
-int httpd_serve(http_server *server, const char *port_str) {
+int httpd_serve(nanohttpd_server *server, const char *port_str) {
     int port = atoi(port_str);
     int srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv < 0) { perror("socket"); return -1; }
