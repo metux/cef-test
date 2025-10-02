@@ -10,6 +10,16 @@
 static int counter = 0;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+static void handle_goback(nanohttpd_xfer *xfer) {
+    cefhelper_goback();
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "back");
+}
+
+static void handle_goforward(nanohttpd_xfer *xfer) {
+    cefhelper_goforward();
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "forward");
+}
+
 static void handle_reload(nanohttpd_xfer *xfer) {
     cefhelper_reload();
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "reloaded");
@@ -49,6 +59,8 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/stopload", handle_stopload, NULL);
     nanohttpd_register_handler(&srv, "/url", handle_seturl, NULL);
     nanohttpd_register_handler(&srv, "/reload", handle_reload, NULL);
+    nanohttpd_register_handler(&srv, "/back", handle_goback, NULL);
+    nanohttpd_register_handler(&srv, "/forward", handle_goforward, NULL);
     nanohttpd_serve_thread(&srv);
 
     return cefhelper_run(parent_xid, 800, 600, "file:///");
