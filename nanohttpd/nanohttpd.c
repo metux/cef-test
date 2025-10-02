@@ -215,6 +215,20 @@ int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
     return 0;
 }
 
+static void *__serverthread(void *arg) {
+    nanohttpd_server *server = (nanohttpd_server*)arg;
+    fprintf(stderr, "server thread: port=%s\n", server->port);
+    nanohttpd_serve(server, server->port);
+}
+
+int nanohttpd_serve_thread(nanohttpd_server *server, const char *port_str) {
+    fprintf(stderr, "starting server thread\n");
+    server->port = port_str;
+    pthread_t tid;
+    pthread_create(&tid, NULL, __serverthread, server);
+    pthread_detach(tid);
+}
+
 void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
                                   const char *content_type,
                                   const char *data)
