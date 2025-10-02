@@ -1,11 +1,7 @@
-/third_party
 *.o
 *.a
 *.so
 *.pak
-/embed_cef
-/cache
 *.dat
-/locales
 *.bin
 /dist
