@@ -13,6 +13,7 @@
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_client.h"
+#include "include/cef_frame.h"
 #include "include/cef_render_handler.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
@@ -246,21 +247,28 @@ private:
     IMPLEMENT_REFCOUNTING(LoadURLTask);
 };
 
+class ReloadTask : public CefTask {
+public:
+    ReloadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    void Execute() override {
+        if (browser) {
+            auto frame = browser->GetMainFrame();
+            auto url = frame->GetURL().ToString();
+            frame->LoadURL(url);
+        }
+    }
+
+private:
+    CefRefPtr<CefBrowser> browser;
+    IMPLEMENT_REFCOUNTING(ReloadTask);
+};
+
 void cefhelper_loadurl(const char *url)
 {
-    if (mainBrowser)
-        fprintf(stderr, "GOT MAIN BROWSER\n");
-    else
-        fprintf(stderr, "NO MAIN BROWSER\n");
-
     CefPostTask(TID_UI, new LoadURLTask(mainBrowser, url));
+}
 
-//    mainBrowser->GetMainFrame()->LoadURL(url);
-
-//    CefRefPtr<CefBrowser> browser = mainBrowser;  // your global/active browser
-
-//    CefPostTask(TID_UI, [browser, url]() {
-//        if (browser)
-//            browser->GetMainFrame()->LoadURL(url);
-//    });
+void cefhelper_reload(const char *url)
+{
+    CefPostTask(TID_UI, new ReloadTask(mainBrowser));
 }

@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
     nanohttpd_server *server;
     const char *path;
+    const char *matched_prefix;
     int fd;
     void *user_data;
 } nanohttpd_xfer;
@@ -57,6 +58,8 @@ void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
 void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
                                   const char *content_type,
                                   const char *data);
+
+void nanohttpd_urldecode(char *buffer);
 
 #ifdef __cplusplus
 }

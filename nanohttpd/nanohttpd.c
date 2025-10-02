@@ -54,7 +54,7 @@ int nanohttpd_register_handler(nanohttpd_server *server,
 
 /* ------------ utilities ------------ */
 
-static void urldecode(char *s) {
+void nanohttpd_urldecode(char *s) {
     char *dst = s;
     while (*s) {
         if (*s == '%' && isxdigit((unsigned char)s[1]) && isxdigit((unsigned char)s[2])) {
@@ -122,6 +122,7 @@ static void *client_thread(void *arg) {
     nanohttpd_xfer srv_xfer = {
         .fd = ctx->fd,
         .server = ctx->server,
+        .matched_prefix = "",
     };
 
     char method[16], path[1024], vers[32];
@@ -140,7 +141,7 @@ static void *client_thread(void *arg) {
         goto done;
     }
 
-    urldecode(path);
+//    urldecode(path);
     char *q = strpbrk(path, "?#"); /* strip query */
     if (q) *q = 0;
 
@@ -156,6 +157,7 @@ static void *client_thread(void *arg) {
                 .path = path,
                 .user_data = h->user,
                 .server = ctx->server,
+                .matched_prefix = h->prefix,
             };
             fn(&xfer);
             goto done;

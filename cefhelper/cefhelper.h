@@ -12,6 +12,7 @@ extern "C" {
     int cefhelper_run(uint32_t parent_xid, int width, int height, const char *url);
     bool check_cef_subprocess(int argc, char *argv[]);
     void cefhelper_loadurl(const char *url);
+    void cefhelper_reload(void);
 
 #ifdef __cplusplus
 }
