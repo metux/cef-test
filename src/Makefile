@@ -43,5 +43,4 @@ bundle: $(BIN)
 	cp embed_cef $(DIST_DIR)
 
 run: $(BIN) bundle
-	strip --strip-unneeded $(BIN)
 	cd $(DIST_DIR) && ./$(BIN) $(TEST_PARENT_WINDOW_ID)
