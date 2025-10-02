@@ -9,6 +9,11 @@
 extern "C" {
 #endif
 
+#define NANOHTTPD_RESPONSE_OK              "200 OK"
+#define NANOHTTPD_RESPONSE_BAD_REQUEST     "400 Bad Request"
+#define NANOHTTPD_RESPONSE_NOT_FOUND       "404 Not Found"
+#define NANOHTTPD_RESPONSE_NOT_IMPLEMENTED "501 Not Implemented"
+
 typedef struct {
     bool initialized;
     pthread_mutex_t handlers_lock;
@@ -48,11 +53,6 @@ void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
 void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
                                   const char *content_type,
                                   const char *data);
-
-#define NANOHTTPD_RESPONSE_OK              "200 OK"
-#define NANOHTTPD_RESPONSE_BAD_REQUEST     "400 Bad Request"
-#define NANOHTTPD_RESPONSE_NOT_FOUND       "404 Not Found"
-#define NANOHTTPD_RESPONSE_NOT_IMPLEMENTED "501 Not Implemented"
 
 #ifdef __cplusplus
 }
