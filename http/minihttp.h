@@ -5,20 +5,24 @@
 extern "C" {
 #endif
 
+typedef struct _httpd_server {
+    void *privdata;
+} http_server;
+
 /* Handler function type:
  * - client_fd: socket to write HTTP response to
  * - path: request path (already URL-decoded, no query/fragment)
  * - user_data: pointer passed during handler registration
  */
-typedef void (*http_handler_fn)(int client_fd, const char *path, void *user_data);
+typedef void (*http_handler_fn)(http_server *server, int client_fd, const char *path, void *user_data);
 
 /* Register a handler for a fixed path prefix.
  * Example: httpd_register_handler("/counter", counter_fn, NULL);
  */
-int httpd_register_handler(const char *prefix, http_handler_fn fn, void *user_data);
+int httpd_register_handler(http_server *server, const char *prefix, http_handler_fn fn, void *user_data);
 
 /* Start serving. Blocks forever. */
-int httpd_serve(const char *port, const char *docroot);
+int httpd_serve(http_server *server, const char *port, const char *docroot);
 
 #ifdef __cplusplus
 }

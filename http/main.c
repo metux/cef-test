@@ -8,7 +8,7 @@
 static int counter = 0;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-static void counter_handler(int fd, const char *path, void *ud) {
+static void counter_handler(http_server *server, int fd, const char *path, void *ud) {
     (void)path; (void)ud;
     pthread_mutex_lock(&lock);
     int n = ++counter;
@@ -21,6 +21,7 @@ static void counter_handler(int fd, const char *path, void *ud) {
 }
 
 int main(int argc, char **argv) {
-    httpd_register_handler("/counter", counter_handler, NULL);
-    return httpd_serve("8080", ".");
+    http_server srv = { 0 };
+    httpd_register_handler(&srv, "/counter", counter_handler, NULL);
+    return httpd_serve(&srv, "8080", ".");
 }

@@ -28,7 +28,7 @@ struct handler_entry {
 static struct handler_entry *handlers = NULL;
 static pthread_mutex_t handlers_lock = PTHREAD_MUTEX_INITIALIZER;
 
-int httpd_register_handler(const char *prefix, http_handler_fn fn, void *user_data) {
+int httpd_register_handler(http_server *server, const char *prefix, http_handler_fn fn, void *user_data) {
     struct handler_entry *h = calloc(1, sizeof(*h));
     if (!h) return -1;
     h->prefix = strdup(prefix);
@@ -43,6 +43,7 @@ int httpd_register_handler(const char *prefix, http_handler_fn fn, void *user_da
 
 /* ------------ utilities ------------ */
 
+#if 0
 static const char *guess_mime(const char *path) {
     const char *ext = strrchr(path, '.');
     if (!ext) return "application/octet-stream";
@@ -53,6 +54,7 @@ static const char *guess_mime(const char *path) {
     if (strcasecmp(ext,"jpg")==0 || strcasecmp(ext,"jpeg")==0) return "image/jpeg";
     return "application/octet-stream";
 }
+#endif
 
 static void urldecode(char *s) {
     char *dst = s;
@@ -101,28 +103,26 @@ static void send_text(int fd, const char *status, const char *text) {
 struct client_ctx {
     int fd;
     char docroot[1024];
+    http_server *server;
 };
 
 static void *client_thread(void *arg) {
     struct client_ctx *ctx = arg;
-    int fd = ctx->fd;
-    char docroot[1024];
-    strncpy(docroot, ctx->docroot, sizeof(docroot)-1);
-    free(ctx);
 
     char buf[4096];
-    ssize_t n = read(fd, buf, sizeof(buf)-1);
-    if (n <= 0) { close(fd); return NULL; }
+    ssize_t n = read(ctx->fd, buf, sizeof(buf)-1);
+    if (n <= 0)
+        goto done;
     buf[n] = 0;
 
     char method[16], path[1024], vers[32];
     if (sscanf(buf, "%15s %1023s %31s", method, path, vers) != 3) {
-        send_text(fd, "400 Bad Request", "Bad Request\n");
-        close(fd); return NULL;
+        send_text(ctx->fd, "400 Bad Request", "Bad Request\n");
+        goto done;
     }
     if (strcmp(method,"GET") != 0) {
-        send_text(fd, "501 Not Implemented", "Only GET supported\n");
-        close(fd); return NULL;
+        send_text(ctx->fd, "501 Not Implemented", "Only GET supported\n");
+        goto done;
     }
 
     urldecode(path);
@@ -137,49 +137,23 @@ static void *client_thread(void *arg) {
             http_handler_fn fn = h->fn;
             void *ud = h->user;
             pthread_mutex_unlock(&handlers_lock);
-            fn(fd, path, ud);
-            close(fd);
-            return NULL;
+            fn(ctx->server, ctx->fd, path, ud);
+            goto done;
         }
         h = h->next;
     }
     pthread_mutex_unlock(&handlers_lock);
+    send_text(ctx->fd, "404 Not Found", "Not Found\n");
 
-    /* default: static file */
-    char filepath[2048];
-    snprintf(filepath, sizeof(filepath), "%s/%s",
-             docroot, path[0]=='/' ? path+1 : path);
-
-    struct stat st;
-    if (stat(filepath, &st) < 0 || !S_ISREG(st.st_mode)) {
-        send_text(fd, "404 Not Found", "Not Found\n");
-        close(fd); return NULL;
-    }
-
-    FILE *f = fopen(filepath, "rb");
-    if (!f) {
-        send_text(fd, "500 Internal Server Error", "Cannot open file\n");
-        close(fd); return NULL;
-    }
-
-    char header[256];
-    int hdrlen = snprintf(header, sizeof(header),
-                          "HTTP/1.0 200 OK\r\nContent-Length: %zu\r\n"
-                          "Content-Type: %s\r\n\r\n",
-                          (size_t)st.st_size, guess_mime(filepath));
-    sendall(fd, header, hdrlen);
-
-    while ((n = fread(buf,1,sizeof(buf),f)) > 0) {
-        sendall(fd, buf, n);
-    }
-    fclose(f);
-    close(fd);
+done:
+    close(ctx->fd);
+    free(ctx);
     return NULL;
 }
 
 /* ------------ server loop ------------ */
 
-int httpd_serve(const char *port_str, const char *docroot) {
+int httpd_serve(http_server *server, const char *port_str, const char *docroot) {
     int port = atoi(port_str);
     int srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv < 0) { perror("socket"); return -1; }
@@ -204,6 +178,7 @@ int httpd_serve(const char *port_str, const char *docroot) {
 
         struct client_ctx *ctx = malloc(sizeof(*ctx));
         ctx->fd = cl;
+        ctx->server = server;
         strncpy(ctx->docroot, docroot, sizeof(ctx->docroot)-1);
 
         pthread_t tid;
