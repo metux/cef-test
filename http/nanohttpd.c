@@ -132,13 +132,14 @@ static void *client_thread(void *arg) {
     while (h) {
         if (strncmp(path, h->prefix, strlen(h->prefix)) == 0) {
             nanohttpd_handler_fn fn = h->fn;
-            void *ud = h->user;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
             nanohttpd_xfer xfer = {
                 .fd = ctx->fd,
                 .path = path,
+                .user_data = h->user,
+                .server = ctx->server,
             };
-            fn(ctx->server, &xfer, ud);
+            fn(&xfer);
             goto done;
         }
         h = h->next;

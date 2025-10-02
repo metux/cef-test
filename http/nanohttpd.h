@@ -18,7 +18,7 @@ typedef struct {
     nanohttpd_server *server;
     const char *path;
     int fd;
-    void *ud;
+    void *user_data;
 } nanohttpd_xfer;
 
 /* Handler function type:
@@ -26,9 +26,7 @@ typedef struct {
  * - path: request path (already URL-decoded, no query/fragment)
  * - user_data: pointer passed during handler registration
  */
-typedef void (*nanohttpd_handler_fn)(nanohttpd_server *server,
-                                     nanohttpd_xfer *xfer,
-                                     void *user_data);
+typedef void (*nanohttpd_handler_fn)(nanohttpd_xfer *xfer);
 
 /* Register a handler for a fixed path prefix.
  * Example: httpd_register_handler("/counter", counter_fn, NULL);
