@@ -24,11 +24,11 @@ static void counter_handler(nanohttpd_xfer *xfer) {
 }
 
 int main(int argc, char **argv) {
-    nanohttpd_server srv = { 0 };
+    nanohttpd_server srv = { .port_str = "8080" };
     nanohttpd_register_handler(&srv, "/counter", counter_handler, NULL);
-//    return nanohttpd_serve(&srv, "8080");
-    nanohttpd_serve_thread(&srv, "8080");
-    while (1) {
+//    return nanohttpd_serve(&srv);
+    nanohttpd_serve_thread(&srv);
+    while (srv.running) {
         fprintf(stderr, "sleep ...\n");
         sleep(1);
     }

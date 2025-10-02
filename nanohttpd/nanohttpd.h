@@ -19,7 +19,7 @@ typedef struct {
     bool running;
     pthread_mutex_t handlers_lock;
     struct handler_entry *handlers;
-    const char *port;
+    const char *port_str;
 } nanohttpd_server;
 
 typedef struct {
@@ -45,9 +45,9 @@ int nanohttpd_register_handler(nanohttpd_server *server,
                                void *user_data);
 
 /* Start serving. Blocks forever. */
-int nanohttpd_serve(nanohttpd_server *server, const char *port);
+int nanohttpd_serve(nanohttpd_server *server);
 
-int nanohttpd_serve_thread(nanohttpd_server *server, const char *port);
+int nanohttpd_serve_thread(nanohttpd_server *server);
 
 void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
                                const char *response,

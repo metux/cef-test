@@ -176,10 +176,10 @@ done:
 
 /* ------------ server loop ------------ */
 
-int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
+int nanohttpd_serve(nanohttpd_server *server) {
     nanohttpd_init(server);
 
-    int port = atoi(port_str);
+    int port = atoi(server->port_str);
     int srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv < 0) { perror("socket"); return -1; }
 
@@ -217,13 +217,14 @@ int nanohttpd_serve(nanohttpd_server *server, const char *port_str) {
 
 static void *__serverthread(void *arg) {
     nanohttpd_server *server = (nanohttpd_server*)arg;
-    fprintf(stderr, "server thread: port=%s\n", server->port);
-    nanohttpd_serve(server, server->port);
+    fprintf(stderr, "server thread: port=%s\n", server->port_str);
+    nanohttpd_serve(server);
+    server->running = false;
 }
 
-int nanohttpd_serve_thread(nanohttpd_server *server, const char *port_str) {
+int nanohttpd_serve_thread(nanohttpd_server *server) {
     fprintf(stderr, "starting server thread\n");
-    server->port = port_str;
+    server->running = true;
     pthread_t tid;
     pthread_create(&tid, NULL, __serverthread, server);
     pthread_detach(tid);
