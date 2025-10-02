@@ -1,7 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "cefhelper.h"
+#include "nanohttpd.h"
+
+static int counter = 0;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+static void counter_handler(nanohttpd_xfer *xfer) {
+    pthread_mutex_lock(&lock);
+    int n = ++counter;
+    pthread_mutex_unlock(&lock);
+
+    char resp[128];
+    snprintf(resp, sizeof(resp), "cefserver\ncount=%d\n", n);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, resp);
+    if (n==10) {
+        fprintf(stderr, "counter reached limit. terminating server\n");
+        exit(0);
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -14,6 +35,10 @@ int main(int argc, char* argv[])
         parent_xid = strtol(argv[1], NULL, 16);
         printf("parsing window id: %lX\n", parent_xid);
     }
+
+    nanohttpd_server srv = { .port_str = "8080" };
+    nanohttpd_register_handler(&srv, "/counter", counter_handler, NULL);
+    nanohttpd_serve_thread(&srv);
 
     return cefhelper_run(parent_xid, 800, 600, "file:///");
 }

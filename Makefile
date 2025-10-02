@@ -21,4 +21,4 @@ clean:
 	rm -Rf $(DIST_DIR)
 
 run:
-	$(MAKE) -C src run
+	$(MAKE) -C test-srv run
