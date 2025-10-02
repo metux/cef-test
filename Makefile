@@ -9,19 +9,16 @@ include $(srcroot)/conf.mk
 
 DIST_DIR := dist
 
+SUBDIRS := cefsdk cefhelper nanohttpd src
+
 .PHONY: all clean run
 
 all:
-	$(MAKE) -C cefsdk
-	$(MAKE) -C cefhelper
-	$(MAKE) -C nanohttpd
-	$(MAKE) -C src
+	for i in $(SUBDIRS); do $(MAKE) -C $$i ; done
 
 clean:
-	$(MAKE) -C src clean
-	$(MAKE) -C nanohttpd clean
-	$(MAKE) -C cefhelper clean
+	for i in $(SUBDIRS); do $(MAKE) -C $$i clean ; done
 	rm -Rf $(DIST_DIR)
 
-run: $(BIN) bundle
+run:
 	$(MAKE) -C src run
