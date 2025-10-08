@@ -1,11 +1,5 @@
 srcroot := .
 
-# the parent window XID for test run
-# you should run some program where the browser shall be embedded
-# into and set the target window ID here
-# TEST_PARENT_WINDOW_ID ?= 0x480000a
-TEST_PARENT_WINDOW_ID ?= 0x5600004
-
 include $(srcroot)/conf.mk
 
 DIST_DIR := dist
