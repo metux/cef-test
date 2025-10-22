@@ -325,13 +325,18 @@ public:
         : _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
     void Execute() override {
         fprintf(stderr, "CreateBrowserTask: xid=0x%X\n", _parent_xid);
-//        if (!browser)
-//            return;
-//        browser->GoForward();
+
+        CefRefPtr<SimpleHandler> handler = new SimpleHandler();
+
+        CefBrowserHost::CreateBrowser(make_window_info(_parent_xid, _width, _height),
+                                      handler,
+                                      _url,
+                                      make_browser_settings(),
+                                      nullptr,
+                                      nullptr);
     }
 
 private:
-//    CefRefPtr<CefBrowser> browser;
     uint32_t _parent_xid;
     int _width;
     int _height;
