@@ -27,4 +27,4 @@ CFLAGS += -ffunction-sections -fdata-sections -O2 -Wno-unused
 CXXFLAGS += $(CFLAGS) -g -std=c++17
 LDFLAGS += -Wl,-rpath,. -pthread -Wl,--gc-sections
 
-TEST_PARENT_WINDOW_ID ?= 0x6600003
+# TEST_PARENT_WINDOW_ID ?= 0x6600003

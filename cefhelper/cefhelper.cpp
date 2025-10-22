@@ -272,9 +272,7 @@ public:
         if (!browser)
             return;
 
-//        auto host = browser->GetHost();
-//        host->StopLoading();
-        browser->GetMainFrame()->LoadURL("about:blank");
+        browser->StopLoad();
     }
 
 private:
@@ -288,7 +286,7 @@ public:
     void Execute() override {
         if (!browser)
             return;
-//        browser->GetMainFrame()->GoBack();
+        browser->GoBack();
     }
 
 private:
@@ -302,7 +300,7 @@ public:
     void Execute() override {
         if (!browser)
             return;
-//        browser->GetMainFrame()->GoForward();
+        browser->GoForward();
     }
 
 private:
