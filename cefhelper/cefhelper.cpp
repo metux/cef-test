@@ -33,16 +33,23 @@ public:
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         browser_ = browser;
+        fprintf(stderr, "A OnAfterCreated() now have %d browsers\n", browser_count_.load());
         browser_count_++;
+        fprintf(stderr, "B OnAfterCreated() now have %d browsers\n", browser_count_.load());
         mainBrowser = browser;
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
-        browser_ = nullptr;
+//        browser_ = nullptr;
+
+        fprintf(stderr, "A OnBeforeClose() now have %d browsers\n", browser_count_.load());
+
         browser_count_--;
 
-        if (browser_count_-- <= 0) {
+        fprintf(stderr, "B OnBeforeClose() now have %d browsers\n", browser_count_.load());
+
+        if (browser_count_ <= 0) {
             CefQuitMessageLoop();
         }
     }
@@ -222,14 +229,25 @@ int cefhelper_run(
         return 1;
     }
 
+    SimpleHandler* handler = new SimpleHandler();
+
     CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
-                                  new SimpleHandler(),
+                                  handler,
                                   url,
                                   make_browser_settings(),
                                   nullptr,
                                   nullptr);
 
+    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
+                                  handler,
+                                  url,
+                                  make_browser_settings(),
+                                  nullptr,
+                                  nullptr);
+
+    fprintf(stderr, "Calling CefRunMessageLoop()\n");
     CefRunMessageLoop();
+    fprintf(stderr, "Returned from CefRunMessageLoop() ... calling CefShutdown()\n");
     CefShutdown();
     return 0;
 }
