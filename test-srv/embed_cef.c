@@ -43,6 +43,22 @@ static void handle_seturl(nanohttpd_xfer *xfer) {
     free(decoded);
 }
 
+static void handle_create(nanohttpd_xfer *xfer) {
+    size_t prefixlen = strlen(xfer->matched_prefix);
+    const char *remaining = xfer->path + prefixlen;
+    while (remaining[0] == '/') remaining++;
+
+    fprintf(stderr, "create: \"%s\"\n", remaining);
+
+    char *endptr = NULL;
+    uint32_t xid = strtol(remaining, &endptr, 16);
+
+    fprintf(stderr, "parsed: %X\n", xid);
+//    char *decoded = strdup(remaining);
+
+    cefhelper_create(xid, 800, 800, "http://www.thur.de/");
+}
+
 int main(int argc, char* argv[])
 {
     /* just pass control to CEF if we're in a subprocess */
@@ -61,6 +77,7 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/reload", handle_reload, NULL);
     nanohttpd_register_handler(&srv, "/back", handle_goback, NULL);
     nanohttpd_register_handler(&srv, "/forward", handle_goforward, NULL);
+    nanohttpd_register_handler(&srv, "/create", handle_create, NULL);
     nanohttpd_serve_thread(&srv);
 
     return cefhelper_run(parent_xid, 800, 600, "file:///");

@@ -238,13 +238,6 @@ int cefhelper_run(
                                   nullptr,
                                   nullptr);
 
-    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
-                                  handler,
-                                  url,
-                                  make_browser_settings(),
-                                  nullptr,
-                                  nullptr);
-
     fprintf(stderr, "Calling CefRunMessageLoop()\n");
     CefRunMessageLoop();
     fprintf(stderr, "Returned from CefRunMessageLoop() ... calling CefShutdown()\n");
@@ -326,6 +319,26 @@ private:
     IMPLEMENT_REFCOUNTING(GoForwardTask);
 };
 
+class CreateBrowserTask: public CefTask {
+public:
+    CreateBrowserTask(uint32_t parent_xid, int width, int height, const char *url)
+        : _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
+    void Execute() override {
+        fprintf(stderr, "CreateBrowserTask: xid=0x%X\n", _parent_xid);
+//        if (!browser)
+//            return;
+//        browser->GoForward();
+    }
+
+private:
+//    CefRefPtr<CefBrowser> browser;
+    uint32_t _parent_xid;
+    int _width;
+    int _height;
+    std::string _url;
+    IMPLEMENT_REFCOUNTING(CreateBrowserTask);
+};
+
 void cefhelper_loadurl(const char *url)
 {
     CefPostTask(TID_UI, new LoadURLTask(mainBrowser, url));
@@ -349,4 +362,10 @@ void cefhelper_goback(void)
 void cefhelper_goforward(void)
 {
     CefPostTask(TID_UI, new GoForwardTask(mainBrowser));
+}
+
+int cefhelper_create(uint32_t parent_xid, int width, int height, const char *url)
+{
+    CefPostTask(TID_UI, new CreateBrowserTask(parent_xid, width, height, url));
+    return 0;
 }

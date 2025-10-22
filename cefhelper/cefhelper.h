@@ -16,6 +16,7 @@ extern "C" {
     void cefhelper_stopload(void);
     void cefhelper_goback(void);
     void cefhelper_goforward(void);
+    int cefhelper_create(uint32_t parent_xid, int width, int height, const char *url);
 
 #ifdef __cplusplus
 }
