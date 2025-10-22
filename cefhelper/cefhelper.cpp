@@ -19,12 +19,13 @@
 #include "include/internal/cef_linux.h"
 
 static CefRefPtr<CefBrowser> mainBrowser;
+static std::atomic<int> browser_count;
 
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler {
 public:
-    SimpleHandler() : browser_count_(0) {}
+    SimpleHandler() {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
         return this;  // MUST return the LifeSpan handler
@@ -32,24 +33,24 @@ public:
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
-        browser_ = browser;
-        fprintf(stderr, "A OnAfterCreated() now have %d browsers\n", browser_count_.load());
-        browser_count_++;
-        fprintf(stderr, "B OnAfterCreated() now have %d browsers\n", browser_count_.load());
-        mainBrowser = browser;
+//        browser_ = browser;
+        fprintf(stderr, "A OnAfterCreated() now have %d browsers\n", browser_count.load());
+        browser_count++;
+        fprintf(stderr, "B OnAfterCreated() now have %d browsers\n", browser_count.load());
+//        mainBrowser = browser;
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
 //        browser_ = nullptr;
 
-        fprintf(stderr, "A OnBeforeClose() now have %d browsers\n", browser_count_.load());
+        fprintf(stderr, "A OnBeforeClose() now have %d browsers\n", browser_count.load());
 
-        browser_count_--;
+        browser_count--;
 
-        fprintf(stderr, "B OnBeforeClose() now have %d browsers\n", browser_count_.load());
+        fprintf(stderr, "B OnBeforeClose() now have %d browsers\n", browser_count.load());
 
-        if (browser_count_ <= 0) {
+        if (browser_count <= 0) {
             CefQuitMessageLoop();
         }
     }
@@ -102,8 +103,7 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser_;
-    std::atomic<int> browser_count_;
+//    CefRefPtr<CefBrowser> browser_;
 
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
@@ -229,7 +229,7 @@ int cefhelper_run(
         return 1;
     }
 
-    SimpleHandler* handler = new SimpleHandler();
+    CefRefPtr<SimpleHandler> handler = new SimpleHandler();
 
     CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
                                   handler,
