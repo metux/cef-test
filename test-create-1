@@ -1,3 +1,9 @@
 #!/bin/bash
 
-curl "http://localhost:8080/create/1/520000a/1000/1000/https%3A%2F%2Fwww.thur.de%2F%0A"
+SLOT="1"
+XID="520000a"
+WIDTH="1000"
+HEIGHT="1000"
+URL="https%3A%2F%2Fwww.thur.de%2F%0A"
+
+curl "http://localhost:8080/create/$SLOT/$XID/$WIDTH/$HEIGHT/$URL"

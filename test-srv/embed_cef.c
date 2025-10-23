@@ -59,6 +59,9 @@ static void handle_create(nanohttpd_xfer *xfer)
     char *url = strdup(xfer->remaining);
     nanohttpd_urldecode(url);
 
+    if (strlen(url)==0)
+        url = strdup("file:///");
+
     fprintf(stderr, "IDX: %d\n", idx);
     fprintf(stderr, "XID: %X\n", xid);
     fprintf(stderr, "URL: \"%s\"\n", url);

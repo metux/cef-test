@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SLOT="0"
+XID="580000a"
+curl "http://localhost:8080/create/$SLOT/$XID/1000/1000/"

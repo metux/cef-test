@@ -235,12 +235,14 @@ int cefhelper_run(
 
     CefRefPtr<SimpleHandler> handler = new SimpleHandler(0);
 
+#if 0
     CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
                                   handler,
                                   url,
                                   make_browser_settings(),
                                   nullptr,
                                   nullptr);
+#endif
 
     fprintf(stderr, "Calling CefRunMessageLoop()\n");
     CefRunMessageLoop();
@@ -286,7 +288,6 @@ public:
     void Execute() override {
         if (!browser)
             return;
-
         browser->StopLoad();
     }
 
@@ -328,7 +329,6 @@ public:
     CreateBrowserTask(int idx, uint32_t parent_xid, int width, int height, const char *url)
         : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
     void Execute() override {
-        fprintf(stderr, "CreateBrowserTask: xid=0x%X\n", _parent_xid);
         CefBrowserHost::CreateBrowser(make_window_info(_parent_xid, _width, _height),
                                       new SimpleHandler(_idx),
                                       _url,
