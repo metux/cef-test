@@ -201,7 +201,6 @@ int nanohttpd_serve(nanohttpd_server *server) {
     if (bind(srv, (struct sockaddr*)&sa, sizeof(sa)) < 0) { perror("bind"); return -1; }
     if (listen(srv, 64) < 0) { perror("listen"); return -1; }
 
-    fprintf(stderr,"Serving on port %d\n", port);
     server->running = true;
     while (server->running) {
         struct sockaddr_in cli;
@@ -224,13 +223,11 @@ int nanohttpd_serve(nanohttpd_server *server) {
 
 static void *__serverthread(void *arg) {
     nanohttpd_server *server = (nanohttpd_server*)arg;
-    fprintf(stderr, "server thread: port=%s\n", server->port_str);
     nanohttpd_serve(server);
     server->running = false;
 }
 
 int nanohttpd_serve_thread(nanohttpd_server *server) {
-    fprintf(stderr, "starting server thread\n");
     server->running = true;
     pthread_t tid;
     pthread_create(&tid, NULL, __serverthread, server);

@@ -48,12 +48,8 @@ public:
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
 
-        fprintf(stderr, "A OnBeforeClose() now have %d browsers\n", browser_count.load());
-
         browser_count--;
         browsers[_idx] = nullptr;
-
-        fprintf(stderr, "B OnBeforeClose() now have %d browsers\n", browser_count.load());
 
         if (browser_count <= 0) {
             CefQuitMessageLoop();
@@ -229,9 +225,7 @@ int cefhelper_run()
         return 1;
     }
 
-    fprintf(stderr, "Calling CefRunMessageLoop()\n");
     CefRunMessageLoop();
-    fprintf(stderr, "Returned from CefRunMessageLoop() ... calling CefShutdown()\n");
     CefShutdown();
     return 0;
 }

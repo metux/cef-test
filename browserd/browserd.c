@@ -62,12 +62,6 @@ static void handle_create(nanohttpd_xfer *xfer)
     if (strlen(url)==0)
         url = strdup("file:///");
 
-    fprintf(stderr, "IDX: %d\n", idx);
-    fprintf(stderr, "XID: %X\n", xid);
-    fprintf(stderr, "URL: \"%s\"\n", url);
-    fprintf(stderr, "WIDTH: %d\n", width);
-    fprintf(stderr, "HEIGHT: %d\n", height);
-
     int ret = cefhelper_create(idx, xid, width, height, url);
     free(url);
 
