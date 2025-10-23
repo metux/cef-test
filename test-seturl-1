@@ -1,3 +1,6 @@
 #!/bin/bash
 
-curl "http://localhost:8080/url/http%3A%2F%2Flunduke.com"
+SLOT="0"
+URL="http%3A%2F%2Flunduke.com"
+
+curl "http://localhost:8080/url/$SLOT/$URL"
