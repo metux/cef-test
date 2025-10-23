@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SLOT="1"
-URL="http%3A%2F%2Fwww.netcom.eu%2F"
+SLOT="0"
+URL="http%3A%2F%2Flunduke.com"
 
 curl "http://localhost:8080/url/$SLOT/$URL"

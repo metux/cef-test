@@ -98,5 +98,5 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/create", handle_create, NULL);
     nanohttpd_serve_thread(&srv);
 
-    return cefhelper_run(parent_xid, 800, 600, "file:///");
+    return cefhelper_run();
 }

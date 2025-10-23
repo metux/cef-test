@@ -217,11 +217,7 @@ int cefhelper_subprocess(int argc, char *argv[]) {
     return CefExecuteProcess(main_args, app, nullptr);
 }
 
-int cefhelper_run(
-    uint32_t parent_xid,
-    int width,
-    int height,
-    const char *url)
+int cefhelper_run()
 {
     /* dont pass it our actual args */
     CefRefPtr<SimpleApp> app = new SimpleApp();
@@ -232,17 +228,6 @@ int cefhelper_run(
         std::cerr << "CEF initialization failed" << std::endl;
         return 1;
     }
-
-    CefRefPtr<SimpleHandler> handler = new SimpleHandler(0);
-
-#if 0
-    CefBrowserHost::CreateBrowser(make_window_info(parent_xid, width, height),
-                                  handler,
-                                  url,
-                                  make_browser_settings(),
-                                  nullptr,
-                                  nullptr);
-#endif
 
     fprintf(stderr, "Calling CefRunMessageLoop()\n");
     CefRunMessageLoop();

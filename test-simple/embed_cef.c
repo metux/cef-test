@@ -15,5 +15,5 @@ int main(int argc, char* argv[])
         printf("parsing window id: %lX\n", parent_xid);
     }
 
-    return cefhelper_run(parent_xid, 800, 600, "file:///");
+    return cefhelper_run();
 }
