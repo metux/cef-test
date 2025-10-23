@@ -18,6 +18,11 @@
 
 static std::vector<CefRefPtr<CefBrowser>> browsers;
 
+static inline void browsers_makeroom(int _idx) {
+    if (browsers.size() < _idx+1)
+        browsers.resize(_idx+1, nullptr);
+}
+
 static CefRefPtr<CefBrowser> mainBrowser;
 static std::atomic<int> browser_count;
 
@@ -34,8 +39,7 @@ public:
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         browser_count++;
-        if (browsers.size() < _idx+1)
-            browsers.resize(_idx+1, nullptr);
+        browsers_makeroom(_idx);
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %d already taken\n", _idx);
         browsers[_idx] = browser;
@@ -342,14 +346,10 @@ private:
     IMPLEMENT_REFCOUNTING(CreateBrowserTask);
 };
 
-CefRefPtr<CefBrowser> getBrowser(int idx)
-{
-    return nullptr;
-}
-
 void cefhelper_loadurl(int idx, const char *url)
 {
-    if (browsers.size() < idx) {
+    browsers_makeroom(idx);
+    if ((browsers.size() < idx) || (browsers[idx] == nullptr)) {
         fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
         return;
     }
@@ -358,7 +358,8 @@ void cefhelper_loadurl(int idx, const char *url)
 
 void cefhelper_reload(int idx)
 {
-    if (browsers.size() < idx) {
+    browsers_makeroom(idx);
+    if ((browsers.size() < idx) || (browsers[idx] == nullptr)) {
         fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
         return;
     }
@@ -367,7 +368,8 @@ void cefhelper_reload(int idx)
 
 void cefhelper_stopload(int idx)
 {
-    if (browsers.size() < idx) {
+    browsers_makeroom(idx);
+    if ((browsers.size() < idx) || (browsers[idx] == nullptr)) {
         fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
         return;
     }
@@ -376,7 +378,8 @@ void cefhelper_stopload(int idx)
 
 void cefhelper_goback(int idx)
 {
-    if (browsers.size() < idx) {
+    browsers_makeroom(idx);
+    if ((browsers.size() < idx) || (browsers[idx] == nullptr)) {
         fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
         return;
     }
@@ -385,7 +388,8 @@ void cefhelper_goback(int idx)
 
 void cefhelper_goforward(int idx)
 {
-    if (browsers.size() < idx) {
+    browsers_makeroom(idx);
+    if ((browsers.size() < idx) || (browsers[idx] == nullptr)) {
         fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
         return;
     }
@@ -394,6 +398,7 @@ void cefhelper_goforward(int idx)
 
 int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url)
 {
+    browsers_makeroom(idx);
     if ((browsers.size() > idx) && (browsers[idx] != nullptr)) {
         fprintf(stderr, "WARNING: create: slot %d already taken\n", idx);
         return -1;
