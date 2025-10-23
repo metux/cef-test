@@ -1,4 +1,5 @@
 #!/bin/bash
 
 SLOT="0"
+
 curl "http://localhost:8080/stopload"
