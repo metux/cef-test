@@ -321,8 +321,8 @@ private:
 
 class CreateBrowserTask: public CefTask {
 public:
-    CreateBrowserTask(uint32_t parent_xid, int width, int height, const char *url)
-        : _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
+    CreateBrowserTask(int idx, uint32_t parent_xid, int width, int height, const char *url)
+        : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
     void Execute() override {
         fprintf(stderr, "CreateBrowserTask: xid=0x%X\n", _parent_xid);
 
@@ -338,39 +338,45 @@ public:
 
 private:
     uint32_t _parent_xid;
+    int _idx;
     int _width;
     int _height;
     std::string _url;
     IMPLEMENT_REFCOUNTING(CreateBrowserTask);
 };
 
-void cefhelper_loadurl(const char *url)
+CefRefPtr<CefBrowser> getBrowser(int idx)
+{
+    return nullptr;
+}
+
+void cefhelper_loadurl(int idx, const char *url)
 {
     CefPostTask(TID_UI, new LoadURLTask(mainBrowser, url));
 }
 
-void cefhelper_reload(void)
+void cefhelper_reload(int idx)
 {
     CefPostTask(TID_UI, new ReloadTask(mainBrowser));
 }
 
-void cefhelper_stopload(void)
+void cefhelper_stopload(int idx)
 {
     CefPostTask(TID_UI, new StopLoadTask(mainBrowser));
 }
 
-void cefhelper_goback(void)
+void cefhelper_goback(int idx)
 {
     CefPostTask(TID_UI, new GoBackTask(mainBrowser));
 }
 
-void cefhelper_goforward(void)
+void cefhelper_goforward(int idx)
 {
     CefPostTask(TID_UI, new GoForwardTask(mainBrowser));
 }
 
-int cefhelper_create(uint32_t parent_xid, int width, int height, const char *url)
+int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url)
 {
-    CefPostTask(TID_UI, new CreateBrowserTask(parent_xid, width, height, url));
+    CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, url));
     return 0;
 }

@@ -11,12 +11,12 @@ extern "C" {
     int cefhelper_subprocess(int argc, char *argv[]);
     int cefhelper_run(uint32_t parent_xid, int width, int height, const char *url);
     bool check_cef_subprocess(int argc, char *argv[]);
-    void cefhelper_loadurl(const char *url);
-    void cefhelper_reload(void);
-    void cefhelper_stopload(void);
-    void cefhelper_goback(void);
-    void cefhelper_goforward(void);
-    int cefhelper_create(uint32_t parent_xid, int width, int height, const char *url);
+    void cefhelper_loadurl(int idx, const char *url);
+    void cefhelper_reload(int idx);
+    void cefhelper_stopload(int idx);
+    void cefhelper_goback(int idx);
+    void cefhelper_goforward(int idx);
+    int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url);
 
 #ifdef __cplusplus
 }
