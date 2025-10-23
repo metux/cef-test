@@ -4,7 +4,7 @@ include $(srcroot)/conf.mk
 
 DIST_DIR := dist
 
-SUBDIRS := cefsdk cefhelper nanohttpd test-srv
+SUBDIRS := cefsdk cefhelper nanohttpd browserd
 
 .PHONY: all clean run
 
@@ -16,4 +16,4 @@ clean:
 	rm -Rf $(DIST_DIR)
 
 run:
-	$(MAKE) -C test-srv run
+	$(MAKE) -C browserd run
