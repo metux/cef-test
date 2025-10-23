@@ -4,7 +4,7 @@ include $(srcroot)/conf.mk
 
 DIST_DIR := dist
 
-SUBDIRS := cefsdk cefhelper nanohttpd test-simple test-srv
+SUBDIRS := cefsdk cefhelper nanohttpd test-srv
 
 .PHONY: all clean run
 
