@@ -152,12 +152,17 @@ static void *client_thread(void *arg) {
         if (strncmp(path, h->prefix, strlen(h->prefix)) == 0) {
             nanohttpd_handler_fn fn = h->fn;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
+
+            const char *remaining = path + strlen(h->prefix);
+            while (remaining[0] == '/') remaining++;
+
             nanohttpd_xfer xfer = {
                 .fd = ctx->fd,
                 .path = path,
                 .user_data = h->user,
                 .server = ctx->server,
                 .matched_prefix = h->prefix,
+                .remaining = remaining,
             };
             fn(&xfer);
             goto done;

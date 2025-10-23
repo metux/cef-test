@@ -44,19 +44,33 @@ static void handle_seturl(nanohttpd_xfer *xfer) {
 }
 
 static void handle_create(nanohttpd_xfer *xfer) {
-    size_t prefixlen = strlen(xfer->matched_prefix);
-    const char *remaining = xfer->path + prefixlen;
-    while (remaining[0] == '/') remaining++;
-
-    fprintf(stderr, "create: \"%s\"\n", remaining);
 
     char *endptr = NULL;
-    uint32_t xid = strtol(remaining, &endptr, 16);
+    uint32_t id = strtol(xfer->remaining, &endptr, 10);
+    while (endptr[0] == '/') endptr++;
+    uint32_t xid = strtol(endptr, &endptr, 16);
+    while (endptr[0] == '/') endptr++;
+    uint32_t width = strtol(endptr, &endptr, 10);
+    while (endptr[0] == '/') endptr++;
+    uint32_t height = strtol(endptr, &endptr, 10);
+    while (endptr[0] == '/') endptr++;
 
-    fprintf(stderr, "parsed: %X\n", xid);
-//    char *decoded = strdup(remaining);
+    char *url = strdup(endptr);
+    nanohttpd_urldecode(url);
 
-    cefhelper_create(xid, 800, 800, "http://www.thur.de/");
+    fprintf(stderr, "ID: %d\n", id);
+    fprintf(stderr, "XID: %X\n", xid);
+    fprintf(stderr, "URL: %s\n", url);
+    fprintf(stderr, "WIDTH: %d\n", width);
+    fprintf(stderr, "HEIGHT: %d\n", height);
+
+    int ret = cefhelper_create(xid, width, height, url);
+    free(url);
+
+    // FIXME: should check for errors and send proper HTTP codes
+    char reply[512];
+    sprintf(reply, "%d", ret);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, reply);
 }
 
 int main(int argc, char* argv[])

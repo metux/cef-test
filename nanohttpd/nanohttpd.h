@@ -26,6 +26,7 @@ typedef struct {
     nanohttpd_server *server;
     const char *path;
     const char *matched_prefix;
+    const char *remaining;
     int fd;
     void *user_data;
 } nanohttpd_xfer;
