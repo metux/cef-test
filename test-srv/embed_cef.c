@@ -83,12 +83,6 @@ int main(int argc, char* argv[])
     if (check_cef_subprocess(argc, argv))
         return cefhelper_subprocess(argc, argv);
 
-    uint32_t parent_xid = 0;
-    if (argc > 1) {
-        parent_xid = strtol(argv[1], NULL, 16);
-        printf("parsing window id: %lX\n", parent_xid);
-    }
-
     nanohttpd_server srv = { .port_str = "8080" };
     nanohttpd_register_handler(&srv, "/stopload", handle_stopload, NULL);
     nanohttpd_register_handler(&srv, "/url", handle_seturl, NULL);

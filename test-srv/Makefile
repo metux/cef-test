@@ -1,10 +1,5 @@
 srcroot := ..
 
-# the parent window XID for test run
-# you should run some program where the browser shall be embedded
-# into and set the target window ID here
-# TEST_PARENT_WINDOW_ID ?= 0x6800003
-
 include $(srcroot)/conf.mk
 
 DIST_DIR := $(srcroot)/dist
@@ -43,4 +38,4 @@ bundle: $(BIN)
 	cp embed_cef $(DIST_DIR)
 
 run: $(BIN) bundle
-	cd $(DIST_DIR) && ./$(BIN) $(TEST_PARENT_WINDOW_ID)
+	cd $(DIST_DIR) && ./$(BIN)
