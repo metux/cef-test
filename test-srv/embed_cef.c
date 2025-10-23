@@ -10,26 +10,6 @@
 static int counter = 0;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer)
-{
-    while (xfer->remaining[0] == '/') xfer->remaining++;
-    char *endptr = NULL;
-    uint32_t val = strtol(xfer->remaining, &endptr, 10);
-    xfer->remaining = endptr;
-    while (xfer->remaining[0] == '/') xfer->remaining++;
-    return val;
-}
-
-int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer)
-{
-    while (xfer->remaining[0] == '/') xfer->remaining++;
-    char *endptr = NULL;
-    uint32_t val = strtol(xfer->remaining, &endptr, 16);
-    xfer->remaining = endptr;
-    while (xfer->remaining[0] == '/') xfer->remaining++;
-    return val;
-}
-
 static void handle_goback(nanohttpd_xfer *xfer)
 {
     int idx = nanohttpd_next_elem_int_dec(xfer);

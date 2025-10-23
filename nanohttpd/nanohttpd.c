@@ -243,3 +243,23 @@ void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
 {
     nanohttpd_xfer_reply_text(xfer, "200 OK", content_type, data);
 }
+
+int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer)
+{
+    while (xfer->remaining[0] == '/') xfer->remaining++;
+    char *endptr = NULL;
+    uint32_t val = strtol(xfer->remaining, &endptr, 10);
+    xfer->remaining = endptr;
+    while (xfer->remaining[0] == '/') xfer->remaining++;
+    return val;
+}
+
+int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer)
+{
+    while (xfer->remaining[0] == '/') xfer->remaining++;
+    char *endptr = NULL;
+    uint32_t val = strtol(xfer->remaining, &endptr, 16);
+    xfer->remaining = endptr;
+    while (xfer->remaining[0] == '/') xfer->remaining++;
+    return val;
+}

@@ -62,6 +62,9 @@ void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
 
 void nanohttpd_urldecode(char *buffer);
 
+int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer);
+int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer);
+
 #ifdef __cplusplus
 }
 #endif
