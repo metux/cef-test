@@ -125,8 +125,8 @@ static void *client_thread(void *arg) {
         .matched_prefix = "",
     };
 
-    char method[16], path[1024], vers[32];
-    if (sscanf(buf, "%15s %1023s %31s", method, path, vers) != 3) {
+    char method[16], xpath[1024], vers[32];
+    if (sscanf(buf, "%15s %1023s %31s", method, xpath, vers) != 3) {
         nanohttpd_xfer_reply_text(&srv_xfer,
                                   NANOHTTPD_RESPONSE_BAD_REQUEST,
                                   NULL,
@@ -140,6 +140,10 @@ static void *client_thread(void *arg) {
                                   "Only GET supported\n");
         goto done;
     }
+
+    // fix path: strip extra leading slashes
+    const char *path = xpath;
+    while (path[0] == '/' && path[1] == '/') path++;
 
 //    urldecode(path);
     char *q = strpbrk(path, "?#"); /* strip query */
