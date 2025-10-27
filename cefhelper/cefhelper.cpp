@@ -43,6 +43,7 @@ public:
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %d already taken\n", _idx);
         browsers[_idx] = browser;
+        fprintf(stderr, "--> assigned %p to browser slot %d\n", browser, _idx);
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
@@ -397,12 +398,24 @@ void cefhelper_goforward(int idx)
 void cefhelper_close(int idx)
 {
     browsers_makeroom(idx);
+#if 0
     CefRefPtr<CefBrowser> b = browsers[idx];
     browsers[idx] = nullptr;
 
     fprintf(stderr, "closing browser #%d\n", idx);
     CefPostTask(TID_UI, new CloseTask(b));
     fprintf(stderr, "sent close message\n");
+#endif
+
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: trying to close empty slot %d\n", idx);
+        return;
+    }
+    fprintf(stderr, "X closing browser #%d\n", idx);
+    CefPostTask(TID_UI, new CloseTask(browsers[idx]));
+    fprintf(stderr, "X sent close message\n");
+    browsers[idx] = nullptr;
+    fprintf(stderr, "X cleared local ref\n");
 }
 
 void cefhelper_closeall(void)

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-SLOT="0"
+SLOT="1"
 
 curl "http://localhost:8080/close/$SLOT"
