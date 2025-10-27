@@ -31,6 +31,13 @@ static void handle_reload(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "reloaded");
 }
 
+static void handle_close(nanohttpd_xfer *xfer)
+{
+    int idx = nanohttpd_next_elem_int_dec(xfer);
+    cefhelper_close(idx);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "closed");
+}
+
 static void handle_stopload(nanohttpd_xfer *xfer)
 {
     int idx = nanohttpd_next_elem_int_dec(xfer);
@@ -71,6 +78,12 @@ static void handle_create(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, reply);
 }
 
+static void handle_shutdown(nanohttpd_xfer *xfer)
+{
+    cefhelper_closeall();
+    nanohttpd_shutdown(xfer->server);
+}
+
 int main(int argc, char* argv[])
 {
     /* just pass control to CEF if we're in a subprocess */
@@ -84,6 +97,8 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/back", handle_goback, NULL);
     nanohttpd_register_handler(&srv, "/forward", handle_goforward, NULL);
     nanohttpd_register_handler(&srv, "/create", handle_create, NULL);
+    nanohttpd_register_handler(&srv, "/shutdown", handle_shutdown, NULL);
+    nanohttpd_register_handler(&srv, "/close", handle_close, NULL);
     nanohttpd_serve_thread(&srv);
 
     return cefhelper_run();

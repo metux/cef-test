@@ -303,6 +303,25 @@ private:
     IMPLEMENT_REFCOUNTING(GoForwardTask);
 };
 
+class CloseTask: public CefTask {
+public:
+    CloseTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    void Execute() override {
+        if (!browser)
+            return;
+        browser->GoForward();
+        if (!browser->GetHost()) {
+            fprintf(stderr, "browser->GetHost() returned NULL\n");
+            return;
+        }
+        browser->GetHost()->CloseBrowser(false);
+    }
+
+private:
+    CefRefPtr<CefBrowser> browser;
+    IMPLEMENT_REFCOUNTING(CloseTask);
+};
+
 class CreateBrowserTask: public CefTask {
 public:
     CreateBrowserTask(int idx, uint32_t parent_xid, int width, int height, const char *url)
@@ -373,6 +392,33 @@ void cefhelper_goforward(int idx)
         return;
     }
     CefPostTask(TID_UI, new GoForwardTask(browsers[idx]));
+}
+
+void cefhelper_close(int idx)
+{
+    browsers_makeroom(idx);
+    CefRefPtr<CefBrowser> b = browsers[idx];
+    browsers[idx] = nullptr;
+
+    fprintf(stderr, "closing browser #%d\n", idx);
+    CefPostTask(TID_UI, new CloseTask(b));
+    fprintf(stderr, "sent close message\n");
+}
+
+void cefhelper_closeall(void)
+{
+    cefhelper_close(0);
+#if 0
+    for (int x=0; x<browsers.size(); x++) {
+        if (browsers[x]) {
+            fprintf(stderr, "closing browser #%d\n", x);
+            CefPostTask(TID_UI, new CloseTask(browsers[x]));
+            fprintf(stderr, "sent close message\n");
+            browsers[x] = nullptr;
+            fprintf(stderr, "cleared my own ref\n");
+        }
+    }
+#endif
 }
 
 int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url)

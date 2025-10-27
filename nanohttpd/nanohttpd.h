@@ -51,6 +51,8 @@ int nanohttpd_serve(nanohttpd_server *server);
 
 int nanohttpd_serve_thread(nanohttpd_server *server);
 
+void nanohttpd_shutdown(nanohttpd_server *server);
+
 void nanohttpd_xfer_reply_text(nanohttpd_xfer *xfer,
                                const char *response,
                                const char *content_type,

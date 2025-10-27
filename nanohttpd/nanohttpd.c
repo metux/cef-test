@@ -264,3 +264,8 @@ int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer)
     while (xfer->remaining[0] == '/') xfer->remaining++;
     return val;
 }
+
+void nanohttpd_shutdown(nanohttpd_server *server)
+{
+    server->running = 0;
+}
