@@ -16,7 +16,13 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
 
-static std::vector<CefRefPtr<CefBrowser>> browsers;
+#define DUMP_BROWSER_PTR(tag, browser) \
+    fprintf(stderr, "[%s] browser=%p host=%p window=%p\n", \
+            tag, (void*)(browser.get()), \
+            (void*)(browser->GetHost().get()), \
+            (void*)(browser->GetHost()->GetWindowHandle()));
+
+static std::vector<CefRefPtr<CefBrowser>> browsers(10);
 
 static inline void browsers_makeroom(int _idx) {
     if (browsers.size() < _idx+1)
@@ -36,25 +42,48 @@ public:
         return this;  // MUST return the LifeSpan handler
     }
 
+    void DUMP(CefRefPtr<CefBrowser> b, const char* tag) {
+        if(!b) {
+            fprintf(stderr, "[%s] browser=null\n", tag);
+            return;
+        }
+        fprintf(stderr, "[%s] raw=%p id=%d host=%p window=%p\n",
+                tag, (void*)b.get(), b->GetIdentifier(),
+                (void*)b->GetHost().get(),
+                (void*)b->GetHost()->GetWindowHandle());
+    }
+
+    bool DoClose(CefRefPtr<CefBrowser> browser) override {
+        CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "DoClose");
+        return false;
+    }
+
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "OnAfterCreated");
+
         browser_count++;
         browsers_makeroom(_idx);
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %d already taken\n", _idx);
         browsers[_idx] = browser;
-        fprintf(stderr, "--> assigned %p to browser slot %d\n", browser, _idx);
+        fprintf(stderr, "--> assigned %p to browser slot %d\n", browser.get(), _idx);
+        fprintf(stderr, "==> NOW %p\n", browsers[_idx].get());
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "OnBeforeClose");
 
-        browser_count--;
-        browsers[_idx] = nullptr;
+//        browser_count--;
+//        browsers[_idx] = nullptr;
 
+#if 0
         if (browser_count <= 0) {
             CefQuitMessageLoop();
         }
+#endif
     }
 
     virtual bool OnBeforePopup(
@@ -70,6 +99,8 @@ public:
         CefBrowserSettings& settings,
         bool* no_javascript_access)
     {
+        CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "OnBeforePopup");
         // Prevent any new popup
         return true; // Returning true cancels popup creation
     }
@@ -83,6 +114,11 @@ public:
                                CefEventHandle os_event,
                                bool* is_keyboard_shortcut) override
     {
+        CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "OnPreKeyEvent");
+
+        fprintf(stderr, "OnPreKeyEvent() browsers[1]=%p\n", browsers[1].get());
+
         /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
         if (event.type == KEYEVENT_RAWKEYDOWN &&
             (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
@@ -154,6 +190,9 @@ public:
 
         // don't write trash to filesystem
         command_line->AppendSwitch("incognito");
+
+        // force gtk in order to avoid crashes in "views"
+        command_line->AppendSwitchWithValue("disable-features", "Views");
     }
 
     IMPLEMENT_REFCOUNTING(SimpleApp);
@@ -310,7 +349,6 @@ public:
     void Execute() override {
         if (!browser)
             return;
-        browser->GoForward();
         if (!browser->GetHost()) {
             fprintf(stderr, "browser->GetHost() returned NULL\n");
             return;
@@ -398,24 +436,12 @@ void cefhelper_goforward(int idx)
 void cefhelper_close(int idx)
 {
     browsers_makeroom(idx);
-#if 0
-    CefRefPtr<CefBrowser> b = browsers[idx];
-    browsers[idx] = nullptr;
-
-    fprintf(stderr, "closing browser #%d\n", idx);
-    CefPostTask(TID_UI, new CloseTask(b));
-    fprintf(stderr, "sent close message\n");
-#endif
-
     if (browsers[idx] == nullptr) {
         fprintf(stderr, "WARNING: trying to close empty slot %d\n", idx);
         return;
     }
-    fprintf(stderr, "X closing browser #%d\n", idx);
+    fprintf(stderr, "X closing browser #%d -- %p\n", idx, browsers[idx].get());
     CefPostTask(TID_UI, new CloseTask(browsers[idx]));
-    fprintf(stderr, "X sent close message\n");
-    browsers[idx] = nullptr;
-    fprintf(stderr, "X cleared local ref\n");
 }
 
 void cefhelper_closeall(void)
