@@ -77,7 +77,7 @@ public:
         DUMP(browser, "OnBeforeClose");
 
 //        browser_count--;
-//        browsers[_idx] = nullptr;
+        browsers[_idx] = nullptr;
 
 #if 0
         if (browser_count <= 0) {
@@ -128,7 +128,7 @@ public:
                 case 'T': /* CTRL-T new window */
                 case 'B': /* CTRL-B bookmarks window */
                 case 'D': /* CTRL-D add bookmark */
-                case 'W': /* CTRL-W close window */
+//                case 'W': /* CTRL-W close window */
                 case 'P': /* CTRL-P print */
                 case 'J': /* CTRL-J downloads window */
                 case 'M': /* CTRL-SHIFT-M switch user */
@@ -192,7 +192,7 @@ public:
         command_line->AppendSwitch("incognito");
 
         // force gtk in order to avoid crashes in "views"
-        command_line->AppendSwitchWithValue("disable-features", "Views");
+//        command_line->AppendSwitchWithValue("disable-features", "Views");
     }
 
     IMPLEMENT_REFCOUNTING(SimpleApp);
