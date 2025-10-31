@@ -27,7 +27,8 @@ WRAPPER_SRCS := $(wildcard $(CEFSDK_DIR)/libcef_dll/*.cc) \
 WRAPPER_OBJS := $(WRAPPER_SRCS:.cc=.o)
 WRAPPER_LIB := libcefwrapper.a
 
-all: $(CEFSDK_MARKER) $(WRAPPER_LIB)
+all: $(CEFSDK_MARKER)
+	$(MAKE) $(WRAPPER_LIB)
 
 $(CEFSDK_TARBALL):
 	@echo ">>> Downloading CEF $(CEF_VERSION)"

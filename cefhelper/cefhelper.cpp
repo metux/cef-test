@@ -56,7 +56,22 @@ public:
     bool DoClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "DoClose");
-        return false;
+
+        fprintf(stderr, "SimpleHandler::DoClose()\n");
+
+        // *** FORCE CLOSE ***
+        // true = destroy the browser even if the client returned false.
+        // This makes the destruction synchronous with the UI thread
+        // and guarantees the Views widget is destroyed *before* the
+        // parent XID disappears.
+        browser->GetHost()->CloseBrowser(true);
+
+        fprintf(stderr, "SimpleHandler::DoClose() after CloseBrowser()\n");
+
+        // Return true to tell CEF we have already taken care of closing.
+        // (Returning false would let CEF try to close again → double-free.)
+        return true;
+//    return false;
     }
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
@@ -124,11 +139,15 @@ public:
             (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
 
             switch (event.windows_key_code) {
-                case 'N': /* CTRL-N new tab */
+//                case 'N': /* CTRL-N new tab */
                 case 'T': /* CTRL-T new window */
                 case 'B': /* CTRL-B bookmarks window */
                 case 'D': /* CTRL-D add bookmark */
 //                case 'W': /* CTRL-W close window */
+                case 'W':
+                    fprintf(stderr, "OnPreKeyEvent() calling ->CloseBrowser(true)\n");
+                    browser->GetHost()->CloseBrowser(true);
+                break;
                 case 'P': /* CTRL-P print */
                 case 'J': /* CTRL-J downloads window */
                 case 'M': /* CTRL-SHIFT-M switch user */
@@ -159,6 +178,10 @@ public:
             const CefString& process_type,
             CefRefPtr<CefCommandLine> command_line) override
     {
+        command_line->AppendSwitch("single-process");
+
+        command_line->AppendSwitchWithValue("enable-features", "PartitionAllocBackupRefPtr,PartitionAllocDanglingPtr:mode/log_only/type/cross_task");
+
         // Disable Segmentation Platform
         command_line->AppendSwitch("disable-segmentation-platform");
 

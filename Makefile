@@ -6,6 +6,9 @@ DIST_DIR := dist
 
 SUBDIRS := cefsdk cefhelper nanohttpd browserd
 
+export PA_DEBUG:=1
+export MALLOC_PERTURB_:=153
+
 .PHONY: all clean run
 
 all:
