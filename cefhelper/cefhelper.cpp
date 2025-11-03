@@ -214,6 +214,10 @@ public:
         // don't write trash to filesystem
         command_line->AppendSwitch("incognito");
 
+        // disable GCM / Firebase
+        command_line->AppendSwitch("disable-features=WebPush,GCM");
+        command_line->AppendSwitch("disable-sync");
+
         // force gtk in order to avoid crashes in "views"
 //        command_line->AppendSwitchWithValue("disable-features", "Views");
     }
