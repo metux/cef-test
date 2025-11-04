@@ -232,6 +232,11 @@ public:
         command_line->AppendSwitch("disable-features=WebPush,GCM");
         command_line->AppendSwitch("disable-sync");
 
+        // prevent crashes on unreachable sites
+// doesn't exist in current chrome
+//        command_line->AppendSwitch("enable-legacy-error-pages");
+//        command_line->AppendSwitch("disable-webui-error-pages");
+
         // force gtk in order to avoid crashes in "views"
 //        command_line->AppendSwitchWithValue("disable-features", "Views");
     }
