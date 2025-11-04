@@ -20,3 +20,6 @@ clean:
 
 run:
 	$(MAKE) -C browserd run
+
+gdb:
+	$(MAKE) -C browserd gdb

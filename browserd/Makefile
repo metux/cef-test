@@ -39,3 +39,6 @@ bundle: $(BIN)
 
 run: $(BIN) bundle
 	cd $(DIST_DIR) && ./$(BIN)
+
+gdb: $(BIN) bundle
+	cd $(DIST_DIR) && gdb ./$(BIN)
