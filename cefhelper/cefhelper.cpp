@@ -34,7 +34,8 @@ static std::atomic<int> browser_count;
 
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
-                      public CefKeyboardHandler {
+                      public CefKeyboardHandler,
+                      public CefLoadHandler {
 public:
     SimpleHandler(int idx) : _idx(idx) {}
 
@@ -158,6 +159,19 @@ public:
 
         return false;
     }
+
+    void OnLoadError(CefRefPtr<CefBrowser> browser,
+                     CefRefPtr<CefFrame> frame,
+                     cef_errorcode_t errorCode,
+                     const CefString& errorText,
+                     const CefString& failedUrl) override {
+        // Suppress default error page
+        fprintf(stderr, "Load failed: %s\n", failedUrl.ToString().c_str());
+        // Optionally load custom blank page
+        frame->LoadURL("data:text/html,<h1>Offline</h1>");
+    }
+
+    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
 private:
     int _idx;
