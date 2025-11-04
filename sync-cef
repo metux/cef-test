@@ -16,8 +16,7 @@ die() {
 FN=`echo $CEF_BUILD_DIR/$BINARY_DIR/cef_binary_*_linux64.tar.bz2`
 BN=`basename "$FN"`
 
-echo "FN=$FN"
-echo "BN=$BN"
+echo "Using CEF tarball: $FN"
 
 [ -f "$FN" ] || die "cant find tarball file: $FN"
 
@@ -25,5 +24,3 @@ mkdir -p $DOWNLOAD_DIR
 
 cp $FN $DOWNLOAD_DIR || die "failed copying $FN to $DOWNLOAD_DIR"
 ( cd $DOWNLOAD_DIR && ln -sf $BN cef.tar.bz2 )
-
-echo okay
