@@ -35,7 +35,8 @@ static std::atomic<int> browser_count;
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler,
-                      public CefLoadHandler {
+                      public CefLoadHandler,
+                      public CefRequestHandler {
 public:
     SimpleHandler(int idx) : _idx(idx) {}
 
@@ -160,13 +161,34 @@ public:
         return false;
     }
 
+    bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
+                        CefRefPtr<CefFrame> frame,
+                        CefRefPtr<CefRequest> request,
+                        bool user_gesture,
+                        bool is_redirect) override
+    {
+        std::string url = request->GetURL();
+        fprintf(stderr, "[OnBeforeBrowse] url=%s\n", url.c_str());
+        if (url.find("chrome://network-error/") != std::string::npos ||
+            url.find("chrome-error://") != std::string::npos) {
+            fprintf(stderr, "[BLOCKED] error page: %s\n", url.c_str());
+            return true;  // CANCEL
+        }
+        return false;
+    }
+
+    CefRefPtr<CefRequestHandler> GetRequestHandler() override {
+        return this;
+    }
+    // is it ever called ?
     void OnLoadError(CefRefPtr<CefBrowser> browser,
                      CefRefPtr<CefFrame> frame,
                      cef_errorcode_t errorCode,
                      const CefString& errorText,
                      const CefString& failedUrl) override {
         // Suppress default error page
-        fprintf(stderr, "Load failed: %s\n", failedUrl.ToString().c_str());
+        fprintf(stderr, "[OnLoadError] Load failed: %s\n", failedUrl.ToString().c_str());
+        browser->StopLoad();
         // Optionally load custom blank page
         frame->LoadURL("data:text/html,<h1>Offline</h1>");
     }
