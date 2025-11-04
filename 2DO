@@ -1,2 +1,5 @@
 * catch window close --> clear browser slot
 * HTTP stat request
+* block CTRL-N ?
+* automatic tests
+* clean up obsolete debug hacks
