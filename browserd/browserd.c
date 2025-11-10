@@ -91,9 +91,8 @@ static void handle_script(nanohttpd_xfer *xfer)
     int idx = nanohttpd_next_elem_int_dec(xfer);
 
     cefhelper_execjs(idx, js_text);
-    nanohttpd_xfer_reply_ok_text(xfer, NULL, decoded);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "DONE");
 }
-
 
 int main(int argc, char* argv[])
 {

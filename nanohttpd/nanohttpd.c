@@ -121,6 +121,7 @@ static void free_headers(struct nanohttpd_header *h) {
 }
 
 static void add_header(nanohttpd_xfer *xfer, const char* name, const char *value) {
+    fprintf(stderr, "add_header: name=\"%s\" value=\"%s\"\n", name, value);
     nanohttpd_header *hdr = calloc(1, sizeof(nanohttpd_header));
     hdr->name = strdup(name);
     hdr->value = strdup(value);
@@ -166,6 +167,35 @@ static void *client_thread(void *arg) {
 //    urldecode(path);
     char *q = strpbrk(path, "?#"); /* strip query */
     if (q) *q = 0;
+
+    /* parse headers */
+    char *hdr_start = strstr(buf, "\r\n");
+    if (hdr_start) {
+        hdr_start += 2;                     /* skip CRLF after request line */
+        char *hdr_end = strstr(hdr_start, "\r\n\r\n");
+        if (hdr_end) hdr_end += 2;          /* point to body start (not used) */
+        else hdr_end = buf + n;             /* fallback */
+
+        char *line = hdr_start;
+        while (line < hdr_end) {
+            char *next_line = strstr(line, "\r\n");
+            if (!next_line) next_line = hdr_end;
+
+            char *colon = strchr(line, ':');
+            if (colon && colon < next_line) {
+                *colon = '\0';
+                char *value = colon + 1;
+                while (*value == ' ' || *value == '\t') value++;
+                char *eol = next_line;
+                while (eol > value && (eol[-1] == ' ' || eol[-1] == '\t' || eol[-1] == '\r')) eol--;
+                *eol = '\0';
+
+                add_header(&srv_xfer, line, value);
+            }
+            line = next_line;
+            if (line < hdr_end) line += 2;
+        }
+    }
 
     /* check handlers */
     pthread_mutex_lock(&ctx->server->handlers_lock);
