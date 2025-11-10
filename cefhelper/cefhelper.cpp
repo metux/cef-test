@@ -339,118 +339,14 @@ int cefhelper_run()
     return 0;
 }
 
-class LoadURLTask : public CefTask {
-public:
-    LoadURLTask(CefRefPtr<CefBrowser> b, std::string u) : browser(b), url(u) {}
-    void Execute() override {
-        if (!browser)
-            return;
-        browser->GetMainFrame()->LoadURL(url);
-    }
-private:
-    CefRefPtr<CefBrowser> browser;
-    std::string url;
-    IMPLEMENT_REFCOUNTING(LoadURLTask);
-};
-
-class ReloadTask : public CefTask {
-public:
-    ReloadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
-    void Execute() override {
-        if (!browser)
-            return;
-
-        auto frame = browser->GetMainFrame();
-        auto url = frame->GetURL().ToString();
-        frame->LoadURL(url);
-    }
-
-private:
-    CefRefPtr<CefBrowser> browser;
-    IMPLEMENT_REFCOUNTING(ReloadTask);
-};
-
-class StopLoadTask : public CefTask {
-public:
-    StopLoadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
-    void Execute() override {
-        if (!browser)
-            return;
-        browser->StopLoad();
-    }
-
-private:
-    CefRefPtr<CefBrowser> browser;
-    IMPLEMENT_REFCOUNTING(StopLoadTask);
-};
-
-class GoBackTask: public CefTask {
-public:
-    GoBackTask(CefRefPtr<CefBrowser> b) : browser(b) {}
-    void Execute() override {
-        if (!browser)
-            return;
-        browser->GoBack();
-    }
-
-private:
-    CefRefPtr<CefBrowser> browser;
-    IMPLEMENT_REFCOUNTING(GoBackTask);
-};
-
-class GoForwardTask: public CefTask {
-public:
-    GoForwardTask(CefRefPtr<CefBrowser> b) : browser(b) {}
-    void Execute() override {
-        if (!browser)
-            return;
-        browser->GoForward();
-    }
-
-private:
-    CefRefPtr<CefBrowser> browser;
-    IMPLEMENT_REFCOUNTING(GoForwardTask);
-};
-
-class CloseTask: public CefTask {
-public:
-    CloseTask(CefRefPtr<CefBrowser> b) : browser(b) {}
-    void Execute() override {
-        if (!browser)
-            return;
-        if (!browser->GetHost()) {
-            fprintf(stderr, "browser->GetHost() returned NULL\n");
-            return;
-        }
-        browser->GetHost()->CloseBrowser(false);
-    }
-
-private:
-    CefRefPtr<CefBrowser> browser;
-    IMPLEMENT_REFCOUNTING(CloseTask);
-};
-
-class CreateBrowserTask: public CefTask {
-public:
-    CreateBrowserTask(int idx, uint32_t parent_xid, int width, int height, const char *url)
-        : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url) {}
-    void Execute() override {
-        CefBrowserHost::CreateBrowser(make_window_info(_parent_xid, _width, _height),
-                                      new SimpleHandler(_idx),
-                                      _url,
-                                      make_browser_settings(),
-                                      nullptr,
-                                      nullptr);
-    }
-
-private:
-    uint32_t _parent_xid;
-    int _idx;
-    int _width;
-    int _height;
-    std::string _url;
-    IMPLEMENT_REFCOUNTING(CreateBrowserTask);
-};
+#include "task/CloseTask.h"
+#include "task/CreateBrowserTask.h"
+#include "task/ExecuteScriptTask.h"
+#include "task/LoadURLTask.h"
+#include "task/ReloadTask.h"
+#include "task/GoForwardTask.h"
+#include "task/StopLoadTask.h"
+#include "task/GoBackTask.h"
 
 void cefhelper_loadurl(int idx, const char *url)
 {
@@ -511,6 +407,16 @@ void cefhelper_close(int idx)
     }
     fprintf(stderr, "X closing browser #%d -- %p\n", idx, browsers[idx].get());
     CefPostTask(TID_UI, new CloseTask(browsers[idx]));
+}
+
+void cefhelper_execjs(int idx, const char *code)
+{
+    browsers_makeroom(idx);
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: execjs on empty slot %d\n", idx);
+        return;
+    }
+    CefPostTask(TID_UI, new ExecuteScriptTask(browsers[idx], code));
 }
 
 void cefhelper_closeall(void)
