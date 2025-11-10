@@ -180,7 +180,7 @@ public:
     CefRefPtr<CefRequestHandler> GetRequestHandler() override {
         return this;
     }
-    // is it ever called ?
+
     void OnLoadError(CefRefPtr<CefBrowser> browser,
                      CefRefPtr<CefFrame> frame,
                      cef_errorcode_t errorCode,
@@ -190,7 +190,8 @@ public:
         fprintf(stderr, "[OnLoadError] Load failed: %s\n", failedUrl.ToString().c_str());
         browser->StopLoad();
         // Optionally load custom blank page
-        frame->LoadURL("data:text/html,<h1>Offline</h1>");
+// this is breaking history (can't go backward anymore)
+//        frame->LoadURL("data:text/html,<h1>Offline</h1>");
     }
 
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
