@@ -84,13 +84,17 @@ static void handle_shutdown(nanohttpd_xfer *xfer)
     nanohttpd_shutdown(xfer->server);
 }
 
-const char js_text [] = "document.write(\"<h2>Hello World</h2>\");";
-
 static void handle_script(nanohttpd_xfer *xfer)
 {
     int idx = nanohttpd_next_elem_int_dec(xfer);
 
-    cefhelper_execjs(idx, js_text);
+    if (xfer->req_body == NULL) {
+        // FIXME: should be an http error
+        nanohttpd_xfer_reply_ok_text(xfer, NULL, "no content");
+    }
+    fprintf(stderr, "SCRIPT: \"%s\"\n", xfer->req_body);
+
+    cefhelper_execjs(idx, xfer->req_body);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "DONE");
 }
 

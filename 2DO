@@ -1,8 +1,8 @@
-* catch window close --> clear browser slot
-* HTTP stat request
-* block CTRL-N ?
-* automatic tests
-* clean up obsolete debug hacks
-* HTTP POST
-* post javascript into browser
-* create browser ID by server
+[ ] catch window close --> clear browser slot
+[ ] HTTP stat request
+[ ] block CTRL-N ?
+[ ] automatic tests
+[ ] clean up obsolete debug hacks
+[X] HTTP POST
+[X] post javascript into browser
+[ ] create browser ID by server

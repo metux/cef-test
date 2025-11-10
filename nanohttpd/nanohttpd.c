@@ -174,7 +174,6 @@ static void *client_thread(void *arg) {
     const char *path = xpath;
     while (path[0] == '/' && path[1] == '/') path++;
 
-//    urldecode(path);
     char *q = strpbrk(path, "?#"); /* strip query */
     if (q) *q = 0;
 
@@ -224,8 +223,6 @@ static void *client_thread(void *arg) {
         char *new_body = calloc(1, srv_xfer.req_content_length + 1);
         memcpy(new_body, body_text, srv_xfer.req_content_length);
         srv_xfer.req_body = new_body;
-
-        fprintf(stderr, "BODY: \"%s\"\n", srv_xfer.req_body);
     }
 
     /* check handlers */
@@ -246,14 +243,20 @@ static void *client_thread(void *arg) {
                 .server = ctx->server,
                 .matched_prefix = h->prefix,
                 .remaining = remaining,
+                .req_method = srv_xfer.req_method,
+                .req_headers = srv_xfer.req_headers,
+                .req_content_length = srv_xfer.req_content_length,
+                .req_body = srv_xfer.req_body,
             };
-            free_headers(xfer.req_headers);
-            free((char*)xfer.req_body);
             fn(&xfer);
             goto done;
         }
         h = h->next;
     }
+
+    free_headers(srv_xfer.req_headers);
+    free((char*)srv_xfer.req_body);
+
     pthread_mutex_unlock(&ctx->server->handlers_lock);
     nanohttpd_xfer_reply_text(&srv_xfer,
                               NANOHTTPD_RESPONSE_NOT_FOUND,
