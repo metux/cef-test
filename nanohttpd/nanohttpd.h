@@ -22,6 +22,12 @@ typedef struct {
     const char *port_str;
 } nanohttpd_server;
 
+typedef struct nanohttpd_header {
+    char *name;
+    char *value;
+    struct nanohttpd_header *next;
+} nanohttpd_header;
+
 typedef struct {
     nanohttpd_server *server;
     const char *path;
@@ -29,6 +35,7 @@ typedef struct {
     const char *remaining;
     int fd;
     void *user_data;
+    nanohttpd_header *headers;
 } nanohttpd_xfer;
 
 /* Handler function type:

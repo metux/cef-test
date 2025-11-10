@@ -3,3 +3,6 @@
 * block CTRL-N ?
 * automatic tests
 * clean up obsolete debug hacks
+* HTTP POST
+* post javascript into browser
+* create browser ID by server

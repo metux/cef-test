@@ -110,6 +110,24 @@ struct client_ctx {
     nanohttpd_server *server;
 };
 
+static void free_headers(struct nanohttpd_header *h) {
+    while (h) {
+        struct nanohttpd_header *n = h->next;
+        free(h->name);
+        free(h->value);
+        free(h);
+        h = n;
+    }
+}
+
+static void add_header(nanohttpd_xfer *xfer, const char* name, const char *value) {
+    nanohttpd_header *hdr = calloc(1, sizeof(nanohttpd_header));
+    hdr->name = strdup(name);
+    hdr->value = strdup(value);
+    hdr->next = xfer->headers;
+    xfer->headers = hdr;
+}
+
 static void *client_thread(void *arg) {
     struct client_ctx *ctx = arg;
 
@@ -168,6 +186,7 @@ static void *client_thread(void *arg) {
                 .matched_prefix = h->prefix,
                 .remaining = remaining,
             };
+            free_headers(xfer.headers);
             fn(&xfer);
             goto done;
         }

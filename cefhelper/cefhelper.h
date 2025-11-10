@@ -17,6 +17,7 @@ void cefhelper_reload(int idx);
 void cefhelper_stopload(int idx);
 void cefhelper_goback(int idx);
 void cefhelper_goforward(int idx);
+void cefhelper_execjs(int idx, const char *code)
 void cefhelper_close(int idx);
 void cefhelper_closeall(void);
 int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url);

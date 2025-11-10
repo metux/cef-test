@@ -84,6 +84,17 @@ static void handle_shutdown(nanohttpd_xfer *xfer)
     nanohttpd_shutdown(xfer->server);
 }
 
+const char js_text [] = "document.write(\"<h2>Hello World</h2>\");";
+
+static void handle_script(nanohttpd_xfer *xfer)
+{
+    int idx = nanohttpd_next_elem_int_dec(xfer);
+
+    cefhelper_execjs(idx, js_text);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, decoded);
+}
+
+
 int main(int argc, char* argv[])
 {
     /* just pass control to CEF if we're in a subprocess */
@@ -91,6 +102,7 @@ int main(int argc, char* argv[])
         return cefhelper_subprocess(argc, argv);
 
     nanohttpd_server srv = { .port_str = "8080" };
+    nanohttpd_register_handler(&srv, "/script", handle_script, NULL);
     nanohttpd_register_handler(&srv, "/stopload", handle_stopload, NULL);
     nanohttpd_register_handler(&srv, "/url", handle_seturl, NULL);
     nanohttpd_register_handler(&srv, "/reload", handle_reload, NULL);
