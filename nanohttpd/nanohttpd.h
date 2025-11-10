@@ -35,7 +35,8 @@ typedef struct {
     const char *remaining;
     int fd;
     void *user_data;
-    nanohttpd_header *headers;
+    nanohttpd_header *req_headers;
+    size_t req_content_length;
 } nanohttpd_xfer;
 
 /* Handler function type:

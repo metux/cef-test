@@ -120,13 +120,23 @@ static void free_headers(struct nanohttpd_header *h) {
     }
 }
 
-static void add_header(nanohttpd_xfer *xfer, const char* name, const char *value) {
-    fprintf(stderr, "add_header: name=\"%s\" value=\"%s\"\n", name, value);
+static void add_req_header(nanohttpd_xfer *xfer, const char* name, const char *value) {
+    fprintf(stderr, "add_req_header: name=\"%s\" value=\"%s\"\n", name, value);
     nanohttpd_header *hdr = calloc(1, sizeof(nanohttpd_header));
     hdr->name = strdup(name);
     hdr->value = strdup(value);
-    hdr->next = xfer->headers;
-    xfer->headers = hdr;
+    hdr->next = xfer->req_headers;
+    xfer->req_headers = hdr;
+
+    if (strcasecmp(name, "Content-Length") == 0) {
+        fprintf(stderr, "->Content-Length header\n");
+        char *end;
+        long cl = strtol(value, &end, 10);
+        if (end != value && *end == '\0' && cl >= 0) {
+            xfer->req_content_length = (size_t)cl;
+            fprintf(stderr, "Content-Length = %ld\n", cl);
+        }
+    }
 }
 
 static void *client_thread(void *arg) {
@@ -190,7 +200,7 @@ static void *client_thread(void *arg) {
                 while (eol > value && (eol[-1] == ' ' || eol[-1] == '\t' || eol[-1] == '\r')) eol--;
                 *eol = '\0';
 
-                add_header(&srv_xfer, line, value);
+                add_req_header(&srv_xfer, line, value);
             }
             line = next_line;
             if (line < hdr_end) line += 2;
@@ -216,7 +226,7 @@ static void *client_thread(void *arg) {
                 .matched_prefix = h->prefix,
                 .remaining = remaining,
             };
-            free_headers(xfer.headers);
+            free_headers(xfer.req_headers);
             fn(&xfer);
             goto done;
         }
@@ -321,7 +331,7 @@ void nanohttpd_shutdown(nanohttpd_server *server)
 
 /* find header case-insensitive */
 const char *nanohttpd_find_header(nanohttpd_xfer *xfer, const char *name) {
-    nanohttpd_header *h = xfer->headers;
+    nanohttpd_header *h = xfer->req_headers;
     while (h) {
         if (strcasecmp(h->name, name) == 0)
             return h->value;

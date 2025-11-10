@@ -2,4 +2,6 @@
 
 SLOT="0"
 
-curl "http://localhost:8080/script/$SLOT"
+#curl "http://localhost:8080/script/$SLOT"
+
+curl -X POST -d "alert('hello world');" "http://localhost:8080/script/$SLOT"
