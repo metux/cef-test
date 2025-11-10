@@ -288,3 +288,14 @@ void nanohttpd_shutdown(nanohttpd_server *server)
 {
     server->running = 0;
 }
+
+/* find header case-insensitive */
+const char *nanohttpd_find_header(nanohttpd_xfer *xfer, const char *name) {
+    nanohttpd_header *h = xfer->headers;
+    while (h) {
+        if (strcasecmp(h->name, name) == 0)
+            return h->value;
+        h = h->next;
+    }
+    return NULL;
+}

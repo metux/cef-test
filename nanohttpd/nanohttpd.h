@@ -74,6 +74,8 @@ void nanohttpd_urldecode(char *buffer);
 int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer);
 int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer);
 
+const char *nanohttpd_find_header(nanohttpd_xfer *xfer, const char *name);
+
 #ifdef __cplusplus
 }
 #endif
