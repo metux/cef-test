@@ -129,13 +129,10 @@ static void add_req_header(nanohttpd_xfer *xfer, const char* name, const char *v
     xfer->req_headers = hdr;
 
     if (strcasecmp(name, "Content-Length") == 0) {
-        fprintf(stderr, "->Content-Length header\n");
         char *end;
         long cl = strtol(value, &end, 10);
-        if (end != value && *end == '\0' && cl >= 0) {
+        if (end != value && *end == '\0' && cl >= 0)
             xfer->req_content_length = (size_t)cl;
-            fprintf(stderr, "Content-Length = %ld\n", cl);
-        }
     }
 }
 
@@ -143,10 +140,10 @@ static void *client_thread(void *arg) {
     struct client_ctx *ctx = arg;
 
     char buf[4096];
-    ssize_t n = read(ctx->fd, buf, sizeof(buf)-1);
-    if (n <= 0)
+    ssize_t read_size = read(ctx->fd, buf, sizeof(buf)-1);
+    if (read_size <= 0)
         goto done;
-    buf[n] = 0;
+    buf[read_size] = 0;
 
     nanohttpd_xfer srv_xfer = {
         .fd = ctx->fd,
@@ -162,13 +159,16 @@ static void *client_thread(void *arg) {
                                   "Bad Request\n");
         goto done;
     }
-    if (strcmp(method,"GET") != 0) {
+
+    if ((strcmp(method,"GET") != 0) && (strcmp(method,"POST") !=0) && (strcmp(method,"PUT") != 0)) {
         nanohttpd_xfer_reply_text(&srv_xfer,
                                   NANOHTTPD_RESPONSE_NOT_IMPLEMENTED,
                                   NULL,
-                                  "Only GET supported\n");
+                                  "Only GET/POST/PUT supported\n");
         goto done;
     }
+
+    srv_xfer.req_method = method;
 
     // fix path: strip extra leading slashes
     const char *path = xpath;
@@ -184,7 +184,7 @@ static void *client_thread(void *arg) {
         hdr_start += 2;                     /* skip CRLF after request line */
         char *hdr_end = strstr(hdr_start, "\r\n\r\n");
         if (hdr_end) hdr_end += 2;          /* point to body start (not used) */
-        else hdr_end = buf + n;             /* fallback */
+        else hdr_end = buf + read_size;     /* fallback */
 
         char *line = hdr_start;
         while (line < hdr_end) {
@@ -203,8 +203,29 @@ static void *client_thread(void *arg) {
                 add_req_header(&srv_xfer, line, value);
             }
             line = next_line;
-            if (line < hdr_end) line += 2;
+            if (line < hdr_end) {
+                line += 2;
+            }
         }
+
+        char *body_text = hdr_end;
+        if ((body_text[0] == '\r') && (body_text[1] == '\n'))
+            body_text += 2;
+
+        size_t remaining = (&buf[read_size]) - body_text;
+        if (srv_xfer.req_content_length > remaining) {
+            nanohttpd_xfer_reply_text(&srv_xfer,
+                                      NANOHTTPD_RESPONSE_BAD_REQUEST,
+                                      NULL,
+                                      "Content-Length too big\n");
+            goto done;
+        }
+
+        char *new_body = calloc(1, srv_xfer.req_content_length + 1);
+        memcpy(new_body, body_text, srv_xfer.req_content_length);
+        srv_xfer.req_body = new_body;
+
+        fprintf(stderr, "BODY: \"%s\"\n", srv_xfer.req_body);
     }
 
     /* check handlers */
@@ -227,6 +248,7 @@ static void *client_thread(void *arg) {
                 .remaining = remaining,
             };
             free_headers(xfer.req_headers);
+            free((char*)xfer.req_body);
             fn(&xfer);
             goto done;
         }
