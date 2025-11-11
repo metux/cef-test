@@ -4,6 +4,8 @@ set -e
 
 . conf.sh
 
-URL="http%3A%2F%2Flunduke.com"
+#URL="http%3A%2F%2Flunduke.com"
+URL="http://lunduke.com"
+URL="https://www.netcom.eu/"
 
 api_seturl "$SLOT_0" "$URL"

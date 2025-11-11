@@ -20,7 +20,7 @@ void cefhelper_goforward(const char *idx);
 void cefhelper_execjs(const char *idx, const char *code);
 void cefhelper_close(const char *idx);
 void cefhelper_closeall(void);
-int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url);
+int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook);
 int cefhelper_list(char *buf, size_t bufmax);
 
 #ifdef __cplusplus

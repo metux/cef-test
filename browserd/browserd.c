@@ -57,8 +57,19 @@ static void handle_seturl(nanohttpd_xfer *xfer)
     char *decoded = strdup(xfer->remaining);
     nanohttpd_urldecode(decoded);
 
-    cefhelper_loadurl(idx, decoded);
-    nanohttpd_xfer_reply_ok_text(xfer, NULL, decoded);
+    const char *hdr_url = nanohttpd_find_header(xfer, "Url");
+    if (hdr_url) {
+        free(decoded);
+        decoded = strdup(hdr_url);
+    }
+
+    if (decoded[0]) {
+        cefhelper_loadurl(idx, decoded);
+        nanohttpd_xfer_reply_ok_text(xfer, NULL, decoded);
+    } else {
+        nanohttpd_xfer_reply_ok_text(xfer, NULL, "FAIL: URL EMPTY");
+    }
+
     free(decoded);
 }
 
@@ -69,14 +80,30 @@ static void handle_create(nanohttpd_xfer *xfer)
     uint32_t width = nanohttpd_next_elem_int_dec(xfer);
     uint32_t height = nanohttpd_next_elem_int_dec(xfer);
 
-    char *url = strdup(xfer->remaining);
-    nanohttpd_urldecode(url);
+    const char *hdr_url = nanohttpd_find_header(xfer, "Url");
+    const char *hdr_webhook = nanohttpd_find_header(xfer, "Webhook");
+    const char *hdr_xid = nanohttpd_find_header(xfer, "XID");
+
+    char *urlbuf = strdup(xfer->remaining);
+    nanohttpd_urldecode(urlbuf);
+
+    const char *url = urlbuf;
+
+    if (hdr_url) {
+        url = hdr_url;
+    }
+
+    if (hdr_xid) {
+        uint32_t val = strtol(hdr_xid, NULL, 16);
+        if (val)
+            xid = val;
+    }
 
     if (strlen(url)==0)
         url = strdup("file:///");
 
-    int ret = cefhelper_create(idx, xid, width, height, url);
-    free(url);
+    int ret = cefhelper_create(idx, xid, width, height, url, hdr_webhook);
+//    free(urlbuf);
 
     // FIXME: should check for errors and send proper HTTP codes
     char reply[512];

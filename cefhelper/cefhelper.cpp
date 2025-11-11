@@ -34,7 +34,9 @@ class SimpleHandler : public CefClient,
                       public CefRequestHandler {
 public:
     SimpleHandler(const char *idx) : _idx(idx) {}
+    SimpleHandler(const char *idx, const char *webhook) : _idx(idx), _webhook(webhook) {}
     SimpleHandler(std::string idx) : _idx(idx) {}
+    SimpleHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
         return this;  // MUST return the LifeSpan handler
@@ -177,6 +179,7 @@ public:
 
 private:
     std::string _idx;
+    std::string _webhook;
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
 
@@ -394,13 +397,14 @@ void cefhelper_closeall(void)
     }
 }
 
-int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url)
+int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook)
 {
+    fprintf(stderr, "create: url=%s webhook=%s\n", url, webhook);
     if (browsers[idx] != nullptr) {
         fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
     }
-    CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, url));
+    CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, strdup(url), strdup(webhook)));
     return 0;
 }
 

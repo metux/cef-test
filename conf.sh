@@ -22,7 +22,8 @@ api_list() {
 api_seturl() {
     local slot="$1"
     local url="$2"
-    api_call "url/$slot/$url"
+#    api_call "url/$slot/$url"
+    curl -X GET -H "Url: $url" "$URL_PREFIX/url/$slot"
 }
 
 api_stopload() {
