@@ -26,7 +26,7 @@ api_seturl() {
 }
 
 api_stopload() {
-    api_call "stopload/$1"
+    api_call "stop/$1"
 }
 
 api_closeall() {

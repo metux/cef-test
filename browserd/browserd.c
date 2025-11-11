@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 
     nanohttpd_server srv = { .port_str = "8080" };
     nanohttpd_register_handler(&srv, "/api/v1/browser/script", handle_script, NULL);
-    nanohttpd_register_handler(&srv, "/api/v1/browser/stopload", handle_stopload, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/stop", handle_stopload, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/url", handle_seturl, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/navigate", handle_seturl, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/reload", handle_reload, NULL);
