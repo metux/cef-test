@@ -236,6 +236,8 @@ static void *client_thread(void *arg) {
             char *remaining = path + strlen(h->prefix);
             while (remaining[0] == '/') remaining++;
 
+            fprintf(stderr, "-> remaining \"%s\"\n", remaining);
+
             nanohttpd_xfer xfer = {
                 .fd = ctx->fd,
                 .path = path,

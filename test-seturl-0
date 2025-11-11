@@ -1,6 +1,10 @@
 #!/bin/bash
 
+set -e
+
+. conf.sh
+
 SLOT="0"
 URL="http%3A%2F%2Flunduke.com"
 
-curl "http://localhost:8080/url/$SLOT/$URL"
+api_call "url/$SLOT/$URL"

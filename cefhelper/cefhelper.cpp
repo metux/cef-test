@@ -78,9 +78,9 @@ public:
 
         browser_count++;
         if (browsers[_idx] != nullptr)
-            fprintf(stderr, "WARNING: browser slot %d already taken\n", _idx);
+            fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
         browsers[_idx] = browser;
-        fprintf(stderr, "--> assigned %p to browser slot %d\n", browser.get(), _idx);
+        fprintf(stderr, "--> assigned %p to browser slot %s\n", browser.get(), _idx);
         fprintf(stderr, "==> NOW %p\n", browsers[_idx].get());
     }
 
@@ -428,5 +428,25 @@ int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height
         return -1;
     }
     CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, url));
+    return 0;
+}
+
+static void safe_str_append(char *dest, size_t size, const char *src) {
+    size_t len = strlen(dest);
+    if (len < size - 1) {
+        strncat(dest, src, size - len - 1);
+    }
+}
+
+int cefhelper_list(char *buf, size_t bufmax)
+{
+    buf[0] = 0;
+
+    for (const auto& pair : browsers) {
+        if (pair.second != nullptr) {
+            safe_str_append(buf, bufmax, pair.first.c_str());
+            safe_str_append(buf, bufmax, "\n");
+        }
+    }
     return 0;
 }

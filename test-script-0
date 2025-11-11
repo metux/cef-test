@@ -1,9 +1,9 @@
 #!/bin/bash
 
+set -e
+
+. conf.sh
+
 SLOT="0"
 
-#curl "http://localhost:8080/script/$SLOT"
-
-# curl -X POST -d "alert('hello world');" "http://localhost:8080/script/$SLOT"
-
-curl -X GET -d "alert('hello world');" "http://localhost:8080/script/$SLOT"
+curl -X GET -d "alert('hello world');" "$URL_PREFIX/script/$SLOT"

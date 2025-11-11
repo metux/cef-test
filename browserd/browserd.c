@@ -98,6 +98,13 @@ static void handle_script(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "DONE");
 }
 
+static void handle_list(nanohttpd_xfer *xfer)
+{
+    char buffer[8196];
+    cefhelper_list(buffer, sizeof(buffer));
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, buffer);
+}
+
 int main(int argc, char* argv[])
 {
     /* just pass control to CEF if we're in a subprocess */
@@ -105,15 +112,17 @@ int main(int argc, char* argv[])
         return cefhelper_subprocess(argc, argv);
 
     nanohttpd_server srv = { .port_str = "8080" };
-    nanohttpd_register_handler(&srv, "/script", handle_script, NULL);
-    nanohttpd_register_handler(&srv, "/stopload", handle_stopload, NULL);
-    nanohttpd_register_handler(&srv, "/url", handle_seturl, NULL);
-    nanohttpd_register_handler(&srv, "/reload", handle_reload, NULL);
-    nanohttpd_register_handler(&srv, "/back", handle_goback, NULL);
-    nanohttpd_register_handler(&srv, "/forward", handle_goforward, NULL);
-    nanohttpd_register_handler(&srv, "/create", handle_create, NULL);
-    nanohttpd_register_handler(&srv, "/shutdown", handle_shutdown, NULL);
-    nanohttpd_register_handler(&srv, "/close", handle_close, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/script", handle_script, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/stopload", handle_stopload, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/url", handle_seturl, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/reload", handle_reload, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/back", handle_goback, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/forward", handle_goforward, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/create", handle_create, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/shutdown", handle_shutdown, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/close", handle_close, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
+
     nanohttpd_serve_thread(&srv);
 
     return cefhelper_run();

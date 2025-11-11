@@ -4,6 +4,4 @@ set -e
 
 . conf.sh
 
-SLOT="0"
-
-api_call "shutdown"
+api_call "list"
