@@ -171,7 +171,7 @@ static void *client_thread(void *arg) {
     srv_xfer.req_method = method;
 
     // fix path: strip extra leading slashes
-    const char *path = xpath;
+    char *path = xpath;
     while (path[0] == '/' && path[1] == '/') path++;
 
     char *q = strpbrk(path, "?#"); /* strip query */
@@ -233,7 +233,7 @@ static void *client_thread(void *arg) {
             nanohttpd_handler_fn fn = h->fn;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
 
-            const char *remaining = path + strlen(h->prefix);
+            char *remaining = path + strlen(h->prefix);
             while (remaining[0] == '/') remaining++;
 
             nanohttpd_xfer xfer = {
@@ -347,6 +347,22 @@ int nanohttpd_next_elem_int_hex(nanohttpd_xfer *xfer)
     xfer->remaining = endptr;
     while (xfer->remaining[0] == '/') xfer->remaining++;
     return val;
+}
+
+const char* nanohttpd_next_elem_path(nanohttpd_xfer *xfer)
+{
+    while (xfer->remaining[0] == '/') xfer->remaining++;
+    char *start = xfer->remaining;
+
+    while ((xfer->remaining[0]) && (xfer->remaining[0] != '/'))
+        xfer->remaining++;
+
+    if (xfer->remaining[0]) {
+        xfer->remaining[0] = 0;
+        xfer->remaining++;
+    }
+
+    return start;
 }
 
 void nanohttpd_shutdown(nanohttpd_server *server)

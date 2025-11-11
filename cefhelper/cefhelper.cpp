@@ -22,12 +22,7 @@
             (void*)(browser->GetHost().get()), \
             (void*)(browser->GetHost()->GetWindowHandle()));
 
-static std::vector<CefRefPtr<CefBrowser>> browsers(10);
-
-static inline void browsers_makeroom(int _idx) {
-    if (browsers.size() < _idx+1)
-        browsers.resize(_idx+1, nullptr);
-}
+static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
 
 static CefRefPtr<CefBrowser> mainBrowser;
 static std::atomic<int> browser_count;
@@ -38,7 +33,8 @@ class SimpleHandler : public CefClient,
                       public CefLoadHandler,
                       public CefRequestHandler {
 public:
-    SimpleHandler(int idx) : _idx(idx) {}
+    SimpleHandler(const char *idx) : _idx(idx) {}
+    SimpleHandler(std::string idx) : _idx(idx) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
         return this;  // MUST return the LifeSpan handler
@@ -81,7 +77,6 @@ public:
         DUMP(browser, "OnAfterCreated");
 
         browser_count++;
-        browsers_makeroom(_idx);
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %d already taken\n", _idx);
         browsers[_idx] = browser;
@@ -133,8 +128,6 @@ public:
     {
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "OnPreKeyEvent");
-
-        fprintf(stderr, "OnPreKeyEvent() browsers[1]=%p\n", browsers[1].get());
 
         /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
         if (event.type == KEYEVENT_RAWKEYDOWN &&
@@ -197,7 +190,7 @@ public:
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
 private:
-    int _idx;
+    std::string _idx;
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 };
 
@@ -348,72 +341,65 @@ int cefhelper_run()
 #include "task/StopLoadTask.h"
 #include "task/GoBackTask.h"
 
-void cefhelper_loadurl(int idx, const char *url)
+void cefhelper_loadurl(const char *idx, const char *url)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new LoadURLTask(browsers[idx], url));
 }
 
-void cefhelper_reload(int idx)
+void cefhelper_reload(const char *idx)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new ReloadTask(browsers[idx]));
 }
 
-void cefhelper_stopload(int idx)
+void cefhelper_stopload(const char *idx)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new StopLoadTask(browsers[idx]));
 }
 
-void cefhelper_goback(int idx)
+void cefhelper_goback(const char *idx)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new GoBackTask(browsers[idx]));
 }
 
-void cefhelper_goforward(int idx)
+void cefhelper_goforward(const char *idx)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to access empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new GoForwardTask(browsers[idx]));
 }
 
-void cefhelper_close(int idx)
+void cefhelper_close(const char *idx)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to close empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: trying to close empty slot %s\n", idx);
         return;
     }
-    fprintf(stderr, "X closing browser #%d -- %p\n", idx, browsers[idx].get());
+    fprintf(stderr, "X closing browser #%s -- %p\n", idx, browsers[idx].get());
     CefPostTask(TID_UI, new CloseTask(browsers[idx]));
 }
 
-void cefhelper_execjs(int idx, const char *code)
+void cefhelper_execjs(const char *idx, const char *code)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: execjs on empty slot %d\n", idx);
+        fprintf(stderr, "WARNING: execjs on empty slot %s\n", idx);
         return;
     }
     CefPostTask(TID_UI, new ExecuteScriptTask(browsers[idx], code));
@@ -425,7 +411,7 @@ void cefhelper_closeall(void)
 #if 0
     for (int x=0; x<browsers.size(); x++) {
         if (browsers[x]) {
-            fprintf(stderr, "closing browser #%d\n", x);
+            fprintf(stderr, "closing browser #%s\n", x);
             CefPostTask(TID_UI, new CloseTask(browsers[x]));
             fprintf(stderr, "sent close message\n");
             browsers[x] = nullptr;
@@ -435,11 +421,10 @@ void cefhelper_closeall(void)
 #endif
 }
 
-int cefhelper_create(int idx, uint32_t parent_xid, int width, int height, const char *url)
+int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url)
 {
-    browsers_makeroom(idx);
     if (browsers[idx] != nullptr) {
-        fprintf(stderr, "WARNING: create: slot %d already taken\n", idx);
+        fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
     }
     CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, url));

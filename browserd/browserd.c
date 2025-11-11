@@ -12,42 +12,42 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static void handle_goback(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     cefhelper_goback(idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "back");
 }
 
 static void handle_goforward(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     cefhelper_goforward(idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "forward");
 }
 
 static void handle_reload(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     cefhelper_reload(idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "reloaded");
 }
 
 static void handle_close(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     cefhelper_close(idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "closed");
 }
 
 static void handle_stopload(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     cefhelper_stopload(idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "stopped");
 }
 
 static void handle_seturl(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     char *decoded = strdup(xfer->remaining);
     nanohttpd_urldecode(decoded);
 
@@ -58,7 +58,7 @@ static void handle_seturl(nanohttpd_xfer *xfer)
 
 static void handle_create(nanohttpd_xfer *xfer)
 {
-    uint32_t idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
     uint32_t xid = nanohttpd_next_elem_int_hex(xfer);
     uint32_t width = nanohttpd_next_elem_int_dec(xfer);
     uint32_t height = nanohttpd_next_elem_int_dec(xfer);
@@ -86,7 +86,7 @@ static void handle_shutdown(nanohttpd_xfer *xfer)
 
 static void handle_script(nanohttpd_xfer *xfer)
 {
-    int idx = nanohttpd_next_elem_int_dec(xfer);
+    const char *idx = nanohttpd_next_elem_path(xfer);
 
     if (xfer->req_body == NULL) {
         // FIXME: should be an http error
