@@ -84,14 +84,12 @@ static void handle_create(nanohttpd_xfer *xfer)
     const char *hdr_webhook = nanohttpd_find_header(xfer, "Webhook");
     const char *hdr_xid = nanohttpd_find_header(xfer, "XID");
 
-    char *urlbuf = strdup(xfer->remaining);
-    nanohttpd_urldecode(urlbuf);
-
-    const char *url = urlbuf;
-
-    if (hdr_url) {
-        url = hdr_url;
+    if ((!hdr_url) && (*hdr_url)) {
+        hdr_url = "file:///";
     }
+
+    if (!hdr_webhook)
+        hdr_webhook = "";
 
     if (hdr_xid) {
         uint32_t val = strtol(hdr_xid, NULL, 16);
@@ -99,11 +97,7 @@ static void handle_create(nanohttpd_xfer *xfer)
             xid = val;
     }
 
-    if (strlen(url)==0)
-        url = strdup("file:///");
-
-    int ret = cefhelper_create(idx, xid, width, height, url, hdr_webhook);
-//    free(urlbuf);
+    int ret = cefhelper_create(idx, xid, width, height, hdr_url, hdr_webhook);
 
     // FIXME: should check for errors and send proper HTTP codes
     char reply[512];
