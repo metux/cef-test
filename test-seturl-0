@@ -4,7 +4,6 @@ set -e
 
 . conf.sh
 
-SLOT="0"
 URL="http%3A%2F%2Flunduke.com"
 
-api_call "url/$SLOT/$URL"
+api_seturl "$SLOT_0" "$URL"

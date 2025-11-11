@@ -229,7 +229,10 @@ static void *client_thread(void *arg) {
     pthread_mutex_lock(&ctx->server->handlers_lock);
     struct handler_entry *h = ctx->server->handlers;
     while (h) {
-        if (strncmp(path, h->prefix, strlen(h->prefix)) == 0) {
+        const int pLen = strlen(h->prefix);
+        if ((strncmp(path, h->prefix, pLen) == 0) &&
+           ((path[pLen] == 0) || (path[pLen] == '/')))
+        {
             nanohttpd_handler_fn fn = h->fn;
             pthread_mutex_unlock(&ctx->server->handlers_lock);
 

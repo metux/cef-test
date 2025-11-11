@@ -4,6 +4,5 @@ set -e
 
 . conf.sh
 
-SLOT="0"
-
-curl -X GET -d "alert('hello world');" "$URL_PREFIX/script/$SLOT"
+# curl -X GET -d "alert('hello world');" "$URL_PREFIX/script/$SLOT"
+api_script "$SLOT_0" "alert('hello world');"

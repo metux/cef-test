@@ -55,8 +55,6 @@ public:
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "DoClose");
 
-        fprintf(stderr, "SimpleHandler::DoClose()\n");
-
         // *** FORCE CLOSE ***
         // true = destroy the browser even if the client returned false.
         // This makes the destruction synchronous with the UI thread
@@ -64,12 +62,9 @@ public:
         // parent XID disappears.
         browser->GetHost()->CloseBrowser(true);
 
-        fprintf(stderr, "SimpleHandler::DoClose() after CloseBrowser()\n");
-
         // Return true to tell CEF we have already taken care of closing.
         // (Returning false would let CEF try to close again → double-free.)
         return true;
-//    return false;
     }
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
@@ -80,22 +75,13 @@ public:
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
         browsers[_idx] = browser;
-        fprintf(stderr, "--> assigned %p to browser slot %s\n", browser.get(), _idx);
-        fprintf(stderr, "==> NOW %p\n", browsers[_idx].get());
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "OnBeforeClose");
 
-//        browser_count--;
-        browsers[_idx] = nullptr;
-
-#if 0
-        if (browser_count <= 0) {
-            CefQuitMessageLoop();
-        }
-#endif
+        browsers.erase(_idx);
     }
 
     virtual bool OnBeforePopup(
@@ -134,7 +120,7 @@ public:
             (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
 
             switch (event.windows_key_code) {
-//                case 'N': /* CTRL-N new tab */
+                case 'N': /* CTRL-N new tab */
                 case 'T': /* CTRL-T new window */
                 case 'B': /* CTRL-B bookmarks window */
                 case 'D': /* CTRL-D add bookmark */
@@ -247,14 +233,6 @@ public:
         // disable GCM / Firebase
         command_line->AppendSwitch("disable-features=WebPush,GCM");
         command_line->AppendSwitch("disable-sync");
-
-        // prevent crashes on unreachable sites
-// doesn't exist in current chrome
-//        command_line->AppendSwitch("enable-legacy-error-pages");
-//        command_line->AppendSwitch("disable-webui-error-pages");
-
-        // force gtk in order to avoid crashes in "views"
-//        command_line->AppendSwitchWithValue("disable-features", "Views");
     }
 
     IMPLEMENT_REFCOUNTING(SimpleApp);
@@ -407,18 +385,13 @@ void cefhelper_execjs(const char *idx, const char *code)
 
 void cefhelper_closeall(void)
 {
-    cefhelper_close(0);
-#if 0
-    for (int x=0; x<browsers.size(); x++) {
-        if (browsers[x]) {
-            fprintf(stderr, "closing browser #%s\n", x);
-            CefPostTask(TID_UI, new CloseTask(browsers[x]));
-            fprintf(stderr, "sent close message\n");
-            browsers[x] = nullptr;
-            fprintf(stderr, "cleared my own ref\n");
+    fprintf(stderr, "cefhelper_closeall()\n");
+    for (const auto& pair : browsers) {
+        if (pair.second != nullptr) {
+            fprintf(stderr, "closeall browser %s\n", pair.first.c_str());
+            CefPostTask(TID_UI, new CloseTask(pair.second));
         }
     }
-#endif
 }
 
 int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url)

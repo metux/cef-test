@@ -4,7 +4,6 @@ set -e
 
 . conf.sh
 
-SLOT="1"
 URL="http%3A%2F%2Fwww.netcom.eu%2F"
 
-api_call "url/$SLOT/$URL"
+api_seturl "$SLOT_1" "$URL"

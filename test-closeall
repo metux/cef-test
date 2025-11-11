@@ -4,4 +4,4 @@ set -e
 
 . conf.sh
 
-api_back "$SLOT_0"
+api_closeall

@@ -38,6 +38,12 @@ static void handle_close(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "closed");
 }
 
+static void handle_closeall(nanohttpd_xfer *xfer)
+{
+    cefhelper_closeall();
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "closed all");
+}
+
 static void handle_stopload(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
@@ -115,11 +121,13 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/api/v1/browser/script", handle_script, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/stopload", handle_stopload, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/url", handle_seturl, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/navigate", handle_seturl, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/reload", handle_reload, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/back", handle_goback, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/forward", handle_goforward, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/create", handle_create, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/shutdown", handle_shutdown, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/closeall", handle_closeall, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/close", handle_close, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
 

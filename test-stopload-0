@@ -4,6 +4,4 @@ set -e
 
 . conf.sh
 
-SLOT="0"
-
-api_call "stopload"
+api_stopload "$SLOT_0"

@@ -4,6 +4,4 @@ set -e
 
 . conf.sh
 
-SLOT="2"
-
-api_call "close/$SLOT"
+api_close "$SLOT_2"

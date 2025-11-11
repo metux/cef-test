@@ -4,4 +4,4 @@ set -e
 
 . conf.sh
 
-api_call "list"
+api_list
