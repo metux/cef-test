@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <curl/curl.h>
 
 #include "cefhelper.h"
 
@@ -27,15 +29,55 @@ static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
 static CefRefPtr<CefBrowser> mainBrowser;
 static std::atomic<int> browser_count;
 
+// Callback function to handle received data
+size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
+    size_t realsize = size * nmemb;
+    printf("%.*s", (int)realsize, (char*)contents);
+    return realsize;
+}
+
+static int doHttpGet(const char *url, struct curl_slist *headers ) {
+    CURL *curl;
+    CURLcode res;
+
+    curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "curl_easy_init() failed\n");
+        return 1;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+    // Set callback function to receive response
+//    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+
+    printf("webhook url %s...\n\n", url);
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+    } else {
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        printf("\n\nHTTP Status: %ld\n", http_code);
+    }
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+    curl_global_cleanup();
+
+    return 0;
+}
+
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler,
                       public CefLoadHandler,
                       public CefRequestHandler {
 public:
-    SimpleHandler(const char *idx) : _idx(idx) {}
-    SimpleHandler(const char *idx, const char *webhook) : _idx(idx), _webhook(webhook) {}
-    SimpleHandler(std::string idx) : _idx(idx) {}
     SimpleHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
@@ -84,6 +126,9 @@ public:
         DUMP(browser, "OnBeforeClose");
 
         browsers.erase(_idx);
+
+        std::string myurl = _webhook + "/closing/" + _idx;
+        doHttpGet(myurl.c_str(), NULL);
     }
 
     virtual bool OnBeforePopup(
@@ -155,7 +200,39 @@ public:
             fprintf(stderr, "[BLOCKED] error page: %s\n", url.c_str());
             return true;  // CANCEL
         }
+
+        std::string myurl = _webhook + "/loading/" + _idx;
+        std::string hdr_url = "Url: "+url;
+
+        struct curl_slist *headers = curl_slist_append(NULL, hdr_url.c_str());
+
+        doHttpGet(myurl.c_str(), headers);
+
         return false;
+    }
+
+    // --- ADD LOAD HANDLER CALLBACKS ---
+    void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
+                              bool isLoading,
+                              bool canGoBack,
+                              bool canGoForward) override
+    {
+        CEF_REQUIRE_UI_THREAD();
+        DUMP(browser, "OnLoadingStateChange");
+
+        if (!isLoading) {
+            fprintf(stderr, "[LOAD COMPLETE] browser=%p id=%d url=%s\n",
+                    (void*)browser.get(),
+                    browser->GetIdentifier(),
+                    browser->GetMainFrame()->GetURL().ToString().c_str());
+
+            std::string myurl = _webhook + "/loaded/" + _idx;
+            std::string hdr_url = "Url: "+url;
+
+            struct curl_slist *headers = curl_slist_append(NULL, hdr_url.c_str());
+
+            doHttpGet(myurl.c_str(), headers);
+        }
     }
 
     CefRefPtr<CefRequestHandler> GetRequestHandler() override {
@@ -171,8 +248,8 @@ public:
         fprintf(stderr, "[OnLoadError] Load failed: %s\n", failedUrl.ToString().c_str());
         browser->StopLoad();
         // Optionally load custom blank page
-// this is breaking history (can't go backward anymore)
-//        frame->LoadURL("data:text/html,<h1>Offline</h1>");
+        // this is breaking history (can't go backward anymore)
+        //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
     }
 
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }

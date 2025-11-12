@@ -14,6 +14,9 @@ X11_CFLAGS := $(shell $(PKG_CONFIG) --cflags x11 xcursor xext)
 CEF_LIBS := -L$(CEF_DIR)/$(CEF_BUILD_TYPE) -lcef $(srcroot)/cefsdk/libcefwrapper.a
 CEF_CFLAGS := -I$(CEF_DIR)
 
+CURL_LIBS := $(shell $(PKG_CONFIG) --libs libcurl)
+CURL_CFLAGS := $(shell $(PKG_CONFIG) --cflags libcurl)
+
 CEFHELPER_LIBS := $(srcroot)/cefhelper/libcefhelper.a
 CEFHELPER_CFLAGS := -I$(srcroot)/cefhelper
 
