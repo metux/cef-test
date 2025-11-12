@@ -36,42 +36,6 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     return realsize;
 }
 
-static int doHttpGet(const char *url, struct curl_slist *headers ) {
-    CURL *curl;
-    CURLcode res;
-
-    curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl_easy_init() failed\n");
-        return 1;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    // Set callback function to receive response
-//    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-
-    printf("webhook url %s...\n\n", url);
-    res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
-        long http_code = 0;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-        printf("\n\nHTTP Status: %ld\n", http_code);
-    }
-
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-
-    return 0;
-}
-
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler,
@@ -127,8 +91,9 @@ public:
 
         browsers.erase(_idx);
 
+        std::vector<std::string> headers;
         std::string myurl = _webhook + "/closing/" + _idx;
-        doHttpGet(myurl.c_str(), NULL);
+        doHttpGet(myurl.c_str(), headers);
     }
 
     virtual bool OnBeforePopup(
@@ -202,9 +167,8 @@ public:
         }
 
         std::string myurl = _webhook + "/loading/" + _idx;
-        std::string hdr_url = "Url: "+url;
-
-        struct curl_slist *headers = curl_slist_append(NULL, hdr_url.c_str());
+        std::vector<std::string> headers;
+        headers.push_back(std::string("Url: "+url));
 
         doHttpGet(myurl.c_str(), headers);
 
@@ -228,8 +192,8 @@ public:
 
             std::string myurl = _webhook + "/loaded/" + _idx;
             std::string hdr_url = "Url: "+browser->GetMainFrame()->GetURL().ToString();
-
-            struct curl_slist *headers = curl_slist_append(NULL, hdr_url.c_str());
+            std::vector<std::string> headers;
+            headers.push_back(hdr_url);
 
             doHttpGet(myurl.c_str(), headers);
         }
@@ -259,43 +223,43 @@ private:
     std::string _webhook;
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 
-    int doHttpGet(const char *url, struct curl_slist *headers ) {
-    CURL *curl;
-    CURLcode res;
+    int doHttpGet(const char *url, std::vector<std::string> headers ) {
+        CURL *curl;
+        CURLcode res;
 
-    curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl_easy_init() failed\n");
-        return 1;
+        curl = curl_easy_init();
+        if (!curl) {
+            fprintf(stderr, "curl_easy_init() failed\n");
+            return 1;
+        }
+
+        struct curl_slist *curl_headers = NULL;
+
+        for (std::string h : headers) {
+            curl_slist_append(curl_headers, h.c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_headers);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        printf("webhook url %s...\n\n", url);
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        } else {
+            long http_code = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+            printf("\n\nHTTP Status: %ld\n", http_code);
+        }
+
+        curl_slist_free_all(curl_headers);
+        curl_easy_cleanup(curl);
+        curl_global_cleanup();
+
+        return 0;
     }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-    // Set callback function to receive response
-//    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-
-    printf("webhook url %s...\n\n", url);
-    res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    } else {
-        long http_code = 0;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-        printf("\n\nHTTP Status: %ld\n", http_code);
-    }
-
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-
-    return 0;
-}
-
-
 };
 
 class SimpleApp : public CefApp,
