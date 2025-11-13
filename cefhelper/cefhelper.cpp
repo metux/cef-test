@@ -20,12 +20,6 @@
 
 static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
 
-// Callback function to handle received data
-size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
-    printf("%.*s", (int)realsize, (char*)contents);
-    return realsize;
-}
 
 class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
@@ -37,6 +31,8 @@ public:
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
+    CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
+    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
 
     void DUMP(CefRefPtr<CefBrowser> b, const char* tag) {
         if(!b) {
@@ -73,8 +69,7 @@ public:
             fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
         browsers[_idx] = browser;
 
-        std::string url = _webhook + "/api/v1/windows/"+_idx+"/events/browser.ready";
-        doHttpPost(url, "");
+        postEvent("browser.ready", "");
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
@@ -83,8 +78,7 @@ public:
 
         browsers.erase(_idx);
 
-        std::string url = _webhook + "/closing/" + _idx;
-        doHttpGet(url);
+        postEvent("browser.close", "");
     }
 
     virtual bool OnBeforePopup(
@@ -102,12 +96,7 @@ public:
     {
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "OnBeforePopup");
-        // Prevent any new popup
         return true; // Returning true cancels popup creation
-    }
-
-    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override {
-        return this;
     }
 
     virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
@@ -157,17 +146,10 @@ public:
             return true;  // CANCEL
         }
 
-        std::string hook_url = _webhook + "/api/v1/windows/"+_idx+"/events/navigation.failed";
-        std::string hook_body = "\
-{\n\
-    \"url\": \""+url+"\",\n\
-    \"reson\": \"\"\n\
-}\n";
-        doHttpPost(hook_url, hook_body);
+        postEvent("navigation.started", "{ \"url\": \""+url+"\" }");
         return false;
     }
 
-    // --- ADD LOAD HANDLER CALLBACKS ---
     void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
                               bool isLoading,
                               bool canGoBack,
@@ -185,90 +167,39 @@ public:
                     browser->GetIdentifier(),
                     current_url.c_str());
 
-            std::string hook_url = "/api/v1/windows/"+_idx+"/events/navigation.finished";
-            std::string hook_body = "\
-{\n\
-    \"url\": \""+current_url+"\",\n\
-    \"httpStatus\": "+std::to_string(current_status)+"\n\
-}\n";
-
-            doHttpPost(hook_url, hook_body);
+            postEvent(
+                "navigation.finished",
+                "{ \"url\": \""+current_url+"\", \"httpStatus\": "+std::to_string(current_status)+" }"
+            );
         }
-    }
-
-    CefRefPtr<CefRequestHandler> GetRequestHandler() override {
-        return this;
     }
 
     void OnLoadError(CefRefPtr<CefBrowser> browser,
                      CefRefPtr<CefFrame> frame,
                      cef_errorcode_t errorCode,
                      const CefString& errorText,
-                     const CefString& failedUrl) override {
-        // Suppress default error page
+                     const CefString& failedUrl) override
+    {
         fprintf(stderr, "[OnLoadError] Load failed: %s\n", failedUrl.ToString().c_str());
         browser->StopLoad();
         // Optionally load custom blank page
         // this is breaking history (can't go backward anymore)
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
-
-        std::string hook_url = "/api/v1/windows/"+_idx+"/events/navigation.failed";
-        std::string hook_body = "\
-{\n\
-    \"url\": \""+failedUrl.ToString()+"\",\n\
-    \"reason\": \"\"\n\
-}\n";
-
-        doHttpPost(hook_url, hook_body);
+        postEvent(
+            "navigation.failed",
+            "{ \"url\": \""+failedUrl.ToString()+"\", \"reason\": \"\" }"
+        );
     }
-
 
 private:
     std::string _idx;
     std::string _webhook;
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 
-    int doHttpGet(std::string url) {
-        std::vector<std::string> headers;
-        return doHttpGet(url, headers);
-    }
-
-    int doHttpGet(std::string url, std::vector<std::string> headers ) {
-        CURL *curl;
-        CURLcode res;
-
-        curl = curl_easy_init();
-        if (!curl) {
-            fprintf(stderr, "curl_easy_init() failed\n");
-            return 1;
-        }
-
-        struct curl_slist *curl_headers = NULL;
-
-        for (std::string h : headers) {
-            curl_slist_append(curl_headers, h.c_str());
-        }
-
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_headers);
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-        printf("webhook url %s...\n\n", url.c_str());
-        res = curl_easy_perform(curl);
-
-        if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        } else {
-            long http_code = 0;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-            printf("\n\nHTTP Status: %ld\n", http_code);
-        }
-
-        curl_slist_free_all(curl_headers);
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-
-        return 0;
+    int postEvent(std::string name, std::string body) {
+        return doHttpPost(
+            _webhook + "/api/v1/windows/" + _idx + "/events/" + name,
+            body);
     }
 
     int doHttpPost(std::string url, std::string body) {
@@ -300,7 +231,6 @@ private:
 
         return 0;
     }
-
 };
 
 class SimpleApp : public CefApp,
