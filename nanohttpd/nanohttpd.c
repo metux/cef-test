@@ -170,6 +170,10 @@ static void *client_thread(void *arg) {
 
     srv_xfer.req_method = method;
 
+    if (strcmp(method, "POST")==0) {
+        fprintf(stderr, "POST DATA: %s\n", buf);
+    }
+
     // fix path: strip extra leading slashes
     char *path = xpath;
     while (path[0] == '/' && path[1] == '/') path++;

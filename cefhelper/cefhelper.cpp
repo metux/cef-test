@@ -18,16 +18,7 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
 
-#define DUMP_BROWSER_PTR(tag, browser) \
-    fprintf(stderr, "[%s] browser=%p host=%p window=%p\n", \
-            tag, (void*)(browser.get()), \
-            (void*)(browser->GetHost().get()), \
-            (void*)(browser->GetHost()->GetWindowHandle()));
-
 static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
-
-static CefRefPtr<CefBrowser> mainBrowser;
-static std::atomic<int> browser_count;
 
 // Callback function to handle received data
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -44,9 +35,8 @@ class SimpleHandler : public CefClient,
 public:
     SimpleHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
-    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override {
-        return this;  // MUST return the LifeSpan handler
-    }
+    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
+    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
     void DUMP(CefRefPtr<CefBrowser> b, const char* tag) {
         if(!b) {
@@ -79,10 +69,12 @@ public:
         CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "OnAfterCreated");
 
-        browser_count++;
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
         browsers[_idx] = browser;
+
+        std::string url = _webhook + "/api/v1/windows/"+_idx+"/events/browser.ready";
+        doHttpPost(url, "");
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
@@ -91,9 +83,8 @@ public:
 
         browsers.erase(_idx);
 
-        std::vector<std::string> headers;
-        std::string myurl = _webhook + "/closing/" + _idx;
-        doHttpGet(myurl.c_str(), headers);
+        std::string url = _webhook + "/closing/" + _idx;
+        doHttpGet(url);
     }
 
     virtual bool OnBeforePopup(
@@ -166,12 +157,13 @@ public:
             return true;  // CANCEL
         }
 
-        std::string myurl = _webhook + "/loading/" + _idx;
-        std::vector<std::string> headers;
-        headers.push_back(std::string("Url: "+url));
-
-        doHttpGet(myurl.c_str(), headers);
-
+        std::string hook_url = _webhook + "/api/v1/windows/"+_idx+"/events/navigation.failed";
+        std::string hook_body = "\
+{\n\
+    \"url\": \""+url+"\",\n\
+    \"reson\": \"\"\n\
+}\n";
+        doHttpPost(hook_url, hook_body);
         return false;
     }
 
@@ -185,17 +177,22 @@ public:
         DUMP(browser, "OnLoadingStateChange");
 
         if (!isLoading) {
+            std::string current_url = browser->GetMainFrame()->GetURL().ToString();
+            int current_status = 200; // FIXME
+
             fprintf(stderr, "[LOAD COMPLETE] browser=%p id=%d url=%s\n",
                     (void*)browser.get(),
                     browser->GetIdentifier(),
-                    browser->GetMainFrame()->GetURL().ToString().c_str());
+                    current_url.c_str());
 
-            std::string myurl = _webhook + "/loaded/" + _idx;
-            std::string hdr_url = "Url: "+browser->GetMainFrame()->GetURL().ToString();
-            std::vector<std::string> headers;
-            headers.push_back(hdr_url);
+            std::string hook_url = "/api/v1/windows/"+_idx+"/events/navigation.finished";
+            std::string hook_body = "\
+{\n\
+    \"url\": \""+current_url+"\",\n\
+    \"httpStatus\": "+std::to_string(current_status)+"\n\
+}\n";
 
-            doHttpGet(myurl.c_str(), headers);
+            doHttpPost(hook_url, hook_body);
         }
     }
 
@@ -214,16 +211,29 @@ public:
         // Optionally load custom blank page
         // this is breaking history (can't go backward anymore)
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
+
+        std::string hook_url = "/api/v1/windows/"+_idx+"/events/navigation.failed";
+        std::string hook_body = "\
+{\n\
+    \"url\": \""+failedUrl.ToString()+"\",\n\
+    \"reason\": \"\"\n\
+}\n";
+
+        doHttpPost(hook_url, hook_body);
     }
 
-    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
 
 private:
     std::string _idx;
     std::string _webhook;
     IMPLEMENT_REFCOUNTING(SimpleHandler);
 
-    int doHttpGet(const char *url, std::vector<std::string> headers ) {
+    int doHttpGet(std::string url) {
+        std::vector<std::string> headers;
+        return doHttpGet(url, headers);
+    }
+
+    int doHttpGet(std::string url, std::vector<std::string> headers ) {
         CURL *curl;
         CURLcode res;
 
@@ -239,11 +249,11 @@ private:
             curl_slist_append(curl_headers, h.c_str());
         }
 
-        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_headers);
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
-        printf("webhook url %s...\n\n", url);
+        printf("webhook url %s...\n\n", url.c_str());
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
@@ -260,6 +270,37 @@ private:
 
         return 0;
     }
+
+    int doHttpPost(std::string url, std::string body) {
+        CURL *curl = curl_easy_init();
+        if (!curl)
+            return 1;
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+
+        struct curl_slist *hs = curl_slist_append(NULL, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+
+        printf("webhook url %s...\n\n", url.c_str());
+        CURLcode res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        } else {
+            long http_code = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+            printf("\n\nHTTP Status: %ld\n", http_code);
+        }
+
+        curl_easy_cleanup(curl);
+        curl_global_cleanup();
+        curl_slist_free_all(hs);
+
+        return 0;
+    }
+
 };
 
 class SimpleApp : public CefApp,
