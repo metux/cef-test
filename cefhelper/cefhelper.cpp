@@ -216,6 +216,20 @@ public:
         return false;
     }
 
+    virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+                           CefRefPtr<CefFrame> frame,
+                           int httpStatusCode) override
+    {
+        fprintf(stderr, "OnLoadEnd: %d\n", httpStatusCode);
+
+        std::string current_url = frame->GetURL().ToString();
+
+        postEvent(
+            "dom.contentLoaded",
+            "{ \"url\": \""+current_url+"\" }"
+        );
+    }
+
 private:
     std::string _idx;
     std::string _webhook;
