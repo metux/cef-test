@@ -25,6 +25,7 @@ class SimpleHandler : public CefClient,
                       public CefLifeSpanHandler,
                       public CefKeyboardHandler,
                       public CefLoadHandler,
+                      public CefDisplayHandler,
                       public CefRequestHandler {
 public:
     SimpleHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
@@ -33,6 +34,7 @@ public:
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
     CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
     CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
+    CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
 
     void DUMP(CefRefPtr<CefBrowser> b, const char* tag) {
         if(!b) {
@@ -63,7 +65,6 @@ public:
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
-        DUMP(browser, "OnAfterCreated");
 
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
@@ -74,7 +75,6 @@ public:
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         CEF_REQUIRE_UI_THREAD();
-        DUMP(browser, "OnBeforeClose");
 
         browsers.erase(_idx);
 
@@ -105,7 +105,6 @@ public:
                                bool* is_keyboard_shortcut) override
     {
         CEF_REQUIRE_UI_THREAD();
-        DUMP(browser, "OnPreKeyEvent");
 
         /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
         if (event.type == KEYEVENT_RAWKEYDOWN &&
@@ -156,7 +155,6 @@ public:
                               bool canGoForward) override
     {
         CEF_REQUIRE_UI_THREAD();
-        DUMP(browser, "OnLoadingStateChange");
 
         if (!isLoading) {
             std::string current_url = browser->GetMainFrame()->GetURL().ToString();
@@ -180,7 +178,6 @@ public:
                      const CefString& errorText,
                      const CefString& failedUrl) override
     {
-        fprintf(stderr, "[OnLoadError] Load failed: %s\n", failedUrl.ToString().c_str());
         browser->StopLoad();
         // Optionally load custom blank page
         // this is breaking history (can't go backward anymore)
@@ -189,6 +186,34 @@ public:
             "navigation.failed",
             "{ \"url\": \""+failedUrl.ToString()+"\", \"reason\": \"\" }"
         );
+    }
+
+    // CefRenderProcessHandler
+    virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+                                  cef_log_severity_t level,
+                                  const CefString& message,
+                                  const CefString& source,
+                                  int line) override
+    {
+        std::string sev = "";
+        switch (level) {
+            case LOGSEVERITY_INFO:    sev = "INFO"; break;
+            case LOGSEVERITY_WARNING: sev = "WARN"; break;
+            case LOGSEVERITY_ERROR:   sev = "ERROR"; break;
+            case LOGSEVERITY_FATAL:   sev = "FATAL"; break;
+            default:                  sev = "DEBUG"; break;
+        }
+
+        postEvent(
+            "console.message",
+            "{ \"message\": \""+message.ToString()
+                +"\", \"severity\": \""+sev+"\", \"source\": \""
+                +source.ToString()+"\", \"line\": "+std::to_string(line)+" }"
+        );
+
+        // Return false = let CEF also log it internally if it wants
+        // Return true  = suppress CEF's own logging
+        return false;
     }
 
 private:
