@@ -373,7 +373,6 @@ void cefhelper_close(const char *idx)
         fprintf(stderr, "WARNING: trying to close empty slot %s\n", idx);
         return;
     }
-    fprintf(stderr, "X closing browser #%s -- %p\n", idx, browsers[idx].get());
     CefPostTask(TID_UI, new CloseTask(browsers[idx]));
 }
 
@@ -388,10 +387,8 @@ void cefhelper_execjs(const char *idx, const char *code)
 
 void cefhelper_closeall(void)
 {
-    fprintf(stderr, "cefhelper_closeall()\n");
     for (const auto& pair : browsers) {
         if (pair.second != nullptr) {
-            fprintf(stderr, "closeall browser %s\n", pair.first.c_str());
             CefPostTask(TID_UI, new CloseTask(pair.second));
         }
     }
@@ -399,7 +396,6 @@ void cefhelper_closeall(void)
 
 int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook)
 {
-    fprintf(stderr, "create: url=%s webhook=%s\n", url, webhook);
     if (browsers[idx] != nullptr) {
         fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
