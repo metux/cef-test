@@ -27,7 +27,8 @@ class CefHelperHandler: public CefClient,
                         public CefKeyboardHandler,
                         public CefLoadHandler,
                         public CefDisplayHandler,
-                        public CefRequestHandler {
+                        public CefRequestHandler,
+                        public CefResourceRequestHandler {
 public:
     CefHelperHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
@@ -46,6 +47,38 @@ public:
                 tag, (void*)b.get(), b->GetIdentifier(),
                 (void*)b->GetHost().get(),
                 (void*)b->GetHost()->GetWindowHandle());
+    }
+
+    CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        CefRefPtr<CefRequest> request,
+        bool is_navigation,
+        bool is_download,
+        const CefString& request_initiator,
+        bool& disable_default_handling) override
+    {
+        return this;
+    }
+
+    bool OnResourceResponse(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        CefRefPtr<CefRequest> request,
+        CefRefPtr<CefResponse> response) override
+    {
+        // not on UI thread !
+        // doesn't seem to be called at all in error case
+
+        int status = response->GetStatus();               // e.g. 200, 404, 500, 301...
+        const CefString& url = request->GetURL();
+
+        fprintf(stderr, "[HTTP %d] %s\n", status, url.ToString().c_str());
+
+        if (frame->IsMain()) {
+            fprintf(stderr, "=== MAIN FRAME STATUS: %d for browser %d ===\n", status, _idx);
+        }
+        return true;
     }
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
