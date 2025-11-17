@@ -22,14 +22,14 @@
 static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
 
 
-class SimpleHandler : public CefClient,
-                      public CefLifeSpanHandler,
-                      public CefKeyboardHandler,
-                      public CefLoadHandler,
-                      public CefDisplayHandler,
-                      public CefRequestHandler {
+class CefHelperHandler: public CefClient,
+                        public CefLifeSpanHandler,
+                        public CefKeyboardHandler,
+                        public CefLoadHandler,
+                        public CefDisplayHandler,
+                        public CefRequestHandler {
 public:
-    SimpleHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
+    CefHelperHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
     CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
     CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
@@ -203,7 +203,7 @@ public:
 private:
     std::string _idx;
     std::string _webhook;
-    IMPLEMENT_REFCOUNTING(SimpleHandler);
+    IMPLEMENT_REFCOUNTING(CefHelperHandler);
 
     int postEvent(std::string name, std::string body) {
         return doHttpPost(
