@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 
 #include "cefhelper.h"
+#include "CefHelperApp.h"
 
 #include "include/capi/cef_app_capi.h"
 #include "include/cef_app.h"
@@ -47,37 +48,15 @@ public:
                 (void*)b->GetHost()->GetWindowHandle());
     }
 
-    bool DoClose(CefRefPtr<CefBrowser> browser) override {
-        CEF_REQUIRE_UI_THREAD();
-        DUMP(browser, "DoClose");
-
-        // *** FORCE CLOSE ***
-        // true = destroy the browser even if the client returned false.
-        // This makes the destruction synchronous with the UI thread
-        // and guarantees the Views widget is destroyed *before* the
-        // parent XID disappears.
-        browser->GetHost()->CloseBrowser(true);
-
-        // Return true to tell CEF we have already taken care of closing.
-        // (Returning false would let CEF try to close again → double-free.)
-        return true;
-    }
-
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
-        CEF_REQUIRE_UI_THREAD();
-
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
         browsers[_idx] = browser;
-
         postEvent("browser.ready", "");
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
-        CEF_REQUIRE_UI_THREAD();
-
         browsers.erase(_idx);
-
         postEvent("browser.close", "");
     }
 
@@ -94,7 +73,6 @@ public:
         CefBrowserSettings& settings,
         bool* no_javascript_access)
     {
-        CEF_REQUIRE_UI_THREAD();
         DUMP(browser, "OnBeforePopup");
         return true; // Returning true cancels popup creation
     }
@@ -104,8 +82,6 @@ public:
                                CefEventHandle os_event,
                                bool* is_keyboard_shortcut) override
     {
-        CEF_REQUIRE_UI_THREAD();
-
         /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
         if (event.type == KEYEVENT_RAWKEYDOWN &&
             (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
@@ -154,8 +130,6 @@ public:
                               bool canGoBack,
                               bool canGoForward) override
     {
-        CEF_REQUIRE_UI_THREAD();
-
         if (!isLoading) {
             std::string current_url = browser->GetMainFrame()->GetURL().ToString();
             int current_status = 200; // FIXME
@@ -179,7 +153,6 @@ public:
                      const CefString& failedUrl) override
     {
         browser->StopLoad();
-        // Optionally load custom blank page
         // this is breaking history (can't go backward anymore)
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
         postEvent(
@@ -220,10 +193,7 @@ public:
                            CefRefPtr<CefFrame> frame,
                            int httpStatusCode) override
     {
-        fprintf(stderr, "OnLoadEnd: %d\n", httpStatusCode);
-
         std::string current_url = frame->GetURL().ToString();
-
         postEvent(
             "dom.contentLoaded",
             "{ \"url\": \""+current_url+"\" }"
@@ -272,64 +242,6 @@ private:
     }
 };
 
-class SimpleApp : public CefApp,
-                  public CefBrowserProcessHandler {
-public:
-    SimpleApp() {}
-
-    // Return myself as browser process handler
-    CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override {
-        return this;
-    }
-
-    virtual void OnBeforeCommandLineProcessing(
-            const CefString& process_type,
-            CefRefPtr<CefCommandLine> command_line) override
-    {
-        command_line->AppendSwitch("single-process");
-
-        command_line->AppendSwitchWithValue("enable-features", "PartitionAllocBackupRefPtr,PartitionAllocDanglingPtr:mode/log_only/type/cross_task");
-
-        // Disable Segmentation Platform
-        command_line->AppendSwitch("disable-segmentation-platform");
-
-        // Disable ML / Optimization systems
-        command_line->AppendSwitch("disable-machine-learning");
-        command_line->AppendSwitch("disable-optimization-guide");
-
-        // Disable reporting/telemetry
-        command_line->AppendSwitch("disable-domain-reliability");
-        command_line->AppendSwitch("disable-background-networking");
-
-        // Disable spellcheck / translate
-        command_line->AppendSwitch("disable-spell-checking");
-        command_line->AppendSwitch("disable-translate");
-
-        // Disable safe browsing (removes Google blocklists etc.)
-        command_line->AppendSwitch("disable-client-side-phishing-detection");
-        command_line->AppendSwitch("disable-component-update");
-        command_line->AppendSwitch("safe-browsing-disable-auto-update");
-        command_line->AppendSwitch("safebrowsing-disable-download-protection");
-
-        // Disable metrics / crash reporting
-        command_line->AppendSwitch("disable-metrics");
-        command_line->AppendSwitch("disable-metrics-reporting");
-
-        // Keep GPU minimal (optional)
-        command_line->AppendSwitch("disable-software-rasterizer");
-        command_line->AppendSwitch("disable-gpu-shader-disk-cache");
-
-        // don't write trash to filesystem
-        command_line->AppendSwitch("incognito");
-
-        // disable GCM / Firebase
-        command_line->AppendSwitch("disable-features=WebPush,GCM");
-        command_line->AppendSwitch("disable-sync");
-    }
-
-    IMPLEMENT_REFCOUNTING(SimpleApp);
-};
-
 bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
@@ -372,7 +284,6 @@ static CefSettings make_settings(void) {
     CefString(&settings.resources_dir_path).FromASCII(exe_path);
     CefString(&settings.locales_dir_path).FromASCII(locales_path);
     CefString(&settings.cache_path).FromASCII(""); /* only in-memory */
-    // CefString(&settings.log_file).FromASCII("cef.log");
     CefString(&settings.root_cache_path).FromASCII(root_cache_path);
     settings.log_severity = LOGSEVERITY_VERBOSE;
 
@@ -381,14 +292,14 @@ static CefSettings make_settings(void) {
 
 int cefhelper_subprocess(int argc, char *argv[]) {
     CefMainArgs main_args(argc, argv);
-    CefRefPtr<SimpleApp> app = new SimpleApp();
+    CefRefPtr<CefHelperApp> app = new CefHelperApp();
     return CefExecuteProcess(main_args, app, nullptr);
 }
 
 int cefhelper_run()
 {
     /* dont pass it our actual args */
-    CefRefPtr<SimpleApp> app = new SimpleApp();
+    CefRefPtr<CefHelperApp> app = new CefHelperApp();
     if (!CefInitialize(CefMainArgs(0, NULL),
                        make_settings(),
                        app.get(),
