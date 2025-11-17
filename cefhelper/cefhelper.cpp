@@ -92,10 +92,6 @@ public:
                 case 'B': /* CTRL-B bookmarks window */
                 case 'D': /* CTRL-D add bookmark */
 //                case 'W': /* CTRL-W close window */
-                case 'W':
-                    fprintf(stderr, "OnPreKeyEvent() calling ->CloseBrowser(true)\n");
-                    browser->GetHost()->CloseBrowser(true);
-                break;
                 case 'P': /* CTRL-P print */
                 case 'J': /* CTRL-J downloads window */
                 case 'M': /* CTRL-SHIFT-M switch user */
@@ -114,13 +110,6 @@ public:
                         bool is_redirect) override
     {
         std::string url = request->GetURL();
-        fprintf(stderr, "[OnBeforeBrowse] url=%s\n", url.c_str());
-        if (url.find("chrome://network-error/") != std::string::npos ||
-            url.find("chrome-error://") != std::string::npos) {
-            fprintf(stderr, "[BLOCKED] error page: %s\n", url.c_str());
-            return true;  // CANCEL
-        }
-
         postEvent("navigation.started", "{ \"url\": \""+url+"\" }");
         return false;
     }
