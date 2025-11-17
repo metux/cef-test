@@ -1,4 +1,4 @@
-[ ] catch window close --> clear browser slot
 [ ] automatic tests
 [ ] clean up obsolete debug hacks
 [ ] make sure always repainted
+[ ] catch network error
