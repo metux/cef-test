@@ -184,7 +184,7 @@ public:
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
         postEvent(
             "navigation.failed",
-            "{ \"url\": \""+failedUrl.ToString()+"\", \"reason\": \"\" }"
+            "{ \"url\": \""+failedUrl.ToString()+"\", reason: \""+std::to_string(errorCode)+"\" }"
         );
     }
 
