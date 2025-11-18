@@ -84,7 +84,7 @@ static void handle_create(nanohttpd_xfer *xfer)
     const char *hdr_webhook = nanohttpd_find_header(xfer, "Webhook");
     const char *hdr_xid = nanohttpd_find_header(xfer, "XID");
 
-    if ((!hdr_url) && (*hdr_url)) {
+    if (!(hdr_url && (*hdr_url)) {
         hdr_url = "file:///";
     }
 
