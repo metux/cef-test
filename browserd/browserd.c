@@ -58,6 +58,15 @@ static void handle_repaint(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "repaint");
 }
 
+static void handle_resize(nanohttpd_xfer *xfer)
+{
+    const char *idx = nanohttpd_next_elem_path(xfer);
+    uint32_t width = nanohttpd_next_elem_int_dec(xfer);
+    uint32_t height = nanohttpd_next_elem_int_dec(xfer);
+    cefhelper_resize(idx, width, height);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "resize");
+}
+
 static void handle_seturl(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
@@ -159,6 +168,7 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/api/v1/browser/close", handle_close, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/repaint", handle_repaint, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/resize", handle_resize, NULL);
 
     nanohttpd_serve_thread(&srv);
 

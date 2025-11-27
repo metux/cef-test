@@ -384,6 +384,7 @@ int cefhelper_run()
 #include "task/StopLoadTask.h"
 #include "task/GoBackTask.h"
 #include "task/RepaintTask.h"
+#include "task/ResizeTask.h"
 
 void cefhelper_loadurl(const char *idx, const char *url)
 {
@@ -445,8 +446,18 @@ void cefhelper_repaint(const char *idx)
         fprintf(stderr, "WARNING: trying to repaint empty slot %s\n", idx);
         return;
     }
-    fprintf(stderr, "repaint X=%d Y=%d\n", browser_info[idx].width, browser_info[idx].height);
     CefPostTask(TID_UI, new RepaintTask(browsers[idx], browser_info[idx]));
+}
+
+void cefhelper_resize(const char *idx, int w, int h)
+{
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: trying to resize empty slot %s\n", idx);
+        return;
+    }
+    browser_info[idx].width = w;
+    browser_info[idx].height = h;
+    CefPostTask(TID_UI, new ResizeTask(browser_info[idx]));
 }
 
 void cefhelper_execjs(const char *idx, const char *code)

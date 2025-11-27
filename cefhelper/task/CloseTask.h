@@ -4,10 +4,8 @@ public:
     void Execute() override {
         if (!browser)
             return;
-        if (!browser->GetHost()) {
-            fprintf(stderr, "browser->GetHost() returned NULL\n");
+        if (!browser->GetHost())
             return;
-        }
         browser->GetHost()->CloseBrowser(false);
     }
 

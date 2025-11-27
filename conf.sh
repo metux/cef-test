@@ -30,6 +30,13 @@ api_seturl() {
     curl -X GET -H "Url: $url" "$URL_PREFIX/navigate/$slot"
 }
 
+api_resize() {
+    local slot="$1"
+    local width="$2"
+    local height="$3"
+    api_call "resize/$slot/$width/$height"
+}
+
 api_stopload() {
     api_call "stop/$1"
 }
