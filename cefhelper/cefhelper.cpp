@@ -98,13 +98,17 @@ public:
         browser_info[_idx].xid = xid;
         browser_info[_idx].browser = browser;
         fprintf(stderr, "OnAfterCreated(): browser %s child window: %x\n", _idx.c_str(), xid);
-        postEvent("browser.ready", "{ \"xid\": \"" + std::to_string(xid) + "\" }");
+
+        postEvent(
+            "browser.ready",
+            { { "xid", std::to_string(xid) } }
+        );
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         browsers.erase(_idx);
         browser_info.erase(_idx);
-        postEvent("browser.close", "");
+        postEvent("browser.close");
     }
 
     virtual bool OnBeforePopup(
@@ -156,8 +160,10 @@ public:
                         bool user_gesture,
                         bool is_redirect) override
     {
-        std::string url = request->GetURL();
-        postEvent("navigation.started", "{ \"url\": \""+url+"\" }");
+        postEvent(
+            "navigation.started",
+            { { "url", request->GetURL() } }
+        );
         return false;
     }
 
@@ -177,7 +183,7 @@ public:
 
             postEvent(
                 "navigation.finished",
-                "{ \"url\": \""+current_url+"\", \"httpStatus\": "+std::to_string(current_status)+" }"
+                { { "url", current_url }, { "httpStatus", std::to_string(current_status) } }
             );
         }
     }
@@ -193,7 +199,7 @@ public:
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");
         postEvent(
             "navigation.failed",
-            "{ \"url\": \""+failedUrl.ToString()+"\", reason: \""+std::to_string(errorCode)+"\" }"
+            { { "url", failedUrl.ToString() }, { "reason", std::to_string(errorCode) } }
         );
     }
 
@@ -214,11 +220,12 @@ public:
         }
 
         postEvent(
-            "console.message",
-            "{ \"message\": \""+message.ToString()
-                +"\", \"severity\": \""+sev+"\", \"source\": \""
-                +source.ToString()+"\", \"line\": "+std::to_string(line)+" }"
-        );
+            "console.message", {
+                { "message", message.ToString() },
+                { "severity", sev },
+                { "source", source.ToString() },
+                { "line", std::to_string(line) }
+        });
 
         // Return false = let CEF also log it internally if it wants
         // Return true  = suppress CEF's own logging
@@ -232,7 +239,7 @@ public:
         std::string current_url = frame->GetURL().ToString();
         postEvent(
             "dom.contentLoaded",
-            "{ \"url\": \""+current_url+"\" }"
+            { { "url", frame->GetURL().ToString() } }
         );
     }
 
@@ -245,6 +252,25 @@ private:
         return doHttpPost(
             _webhook + "/api/v1/windows/" + _idx + "/events/" + name,
             body);
+    }
+
+    int postEvent(std::string name) {
+        return postEvent(name, "");
+    }
+
+    int postEvent(std::string name, std::unordered_map<std::string,std::string> data) {
+        std::string s = "{ ";
+        int x = 0;
+
+        for (const auto& pair : data) {
+            std::cout << pair.first << " = " << pair.second << '\n';
+            if (x) s += ", ";
+            s += "\""+pair.first+"\": \""+pair.second+"\"";
+            x++;
+        }
+
+        s += " }";
+        return postEvent(name, s);
     }
 
     int doHttpPost(std::string url, std::string body) {
