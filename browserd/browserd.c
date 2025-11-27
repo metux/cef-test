@@ -51,6 +51,13 @@ static void handle_stopload(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "stopped");
 }
 
+static void handle_repaint(nanohttpd_xfer *xfer)
+{
+    const char *idx = nanohttpd_next_elem_path(xfer);
+    cefhelper_repaint(idx);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "repaint");
+}
+
 static void handle_seturl(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
@@ -151,6 +158,7 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/api/v1/browser/closeall", handle_closeall, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/close", handle_close, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/repaint", handle_repaint, NULL);
 
     nanohttpd_serve_thread(&srv);
 

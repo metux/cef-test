@@ -343,6 +343,7 @@ int cefhelper_run()
 #include "task/GoForwardTask.h"
 #include "task/StopLoadTask.h"
 #include "task/GoBackTask.h"
+#include "task/RepaintTask.h"
 
 void cefhelper_loadurl(const char *idx, const char *url)
 {
@@ -396,6 +397,15 @@ void cefhelper_close(const char *idx)
         return;
     }
     CefPostTask(TID_UI, new CloseTask(browsers[idx]));
+}
+
+void cefhelper_repaint(const char *idx)
+{
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: trying to close empty slot %s\n", idx);
+        return;
+    }
+    CefPostTask(TID_UI, new RepaintTask(browsers[idx]));
 }
 
 void cefhelper_execjs(const char *idx, const char *code)

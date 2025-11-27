@@ -15,6 +15,10 @@ api_back() {
     api_call "back/$1"
 }
 
+api_repaint() {
+    api_call "repaint/$1"
+}
+
 api_list() {
     api_call "list"
 }
