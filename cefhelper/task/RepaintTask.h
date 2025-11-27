@@ -1,38 +1,21 @@
 class RepaintTask: public CefTask {
 public:
-    RepaintTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    RepaintTask(CefRefPtr<CefBrowser> b, BrowserInfo i) : _browser(b), _info(i) {}
+
     void Execute() override {
-        auto host = browser->GetHost();
-         if (!browser || !host)
-                return;
+        Display *dpy = cef_get_xdisplay();
+        Window win = (Window) _browser->GetHost()->GetWindowHandle();
+        fprintf(stderr, "== RepaintTask: resizing window %x to %d:%d\n", win, _info.width, _info.height);
 
-        // Triple-hammer: Notify + WasResized + Invalidate (Ozone needs the sequence)
-        host->NotifyMoveOrResizeStarted();  // Reset compositor state
-        host->WasResized();                 // Trigger layout/damage
-        host->Invalidate(PET_VIEW);         // Full invalidation
-
-        fprintf(stderr, "Forced repaint on browser %d after parent restore\n", 
-            browser->GetIdentifier());
-
-        // Get current bounds (from parent process side, pass via IPC if needed)
-        int curr_w = 140/* query parent child rect width */;
-        int curr_h = 90/* query parent child rect height */;
-
-        // 1px toggle (harmless, WM ignores micro-changes)
-        CefRect tiny = {0, 0, curr_w + 1, curr_h};
-        host->SetBounds(tiny);  // Triggers real XConfigureWindow on CEF child
-        usleep(10 * 1000);      // Micro-delay for X11 sync (or use XSync)
-
-        // Restore exact
-        CefRect exact = {0, 0, curr_w, curr_h};
-        host->SetBounds(exact);
-        host->WasResized();
-
-        // Bonus: Force focus (wakes compositor)
-        host->SetFocus(true);
+        XResizeWindow(dpy, win, _info.width + 1, _info.height + 1);
+        XSync(dpy, False);
+        usleep(10000);
+        XResizeWindow(dpy, win, _info.width, _info.height);
+        XSync(dpy, False);
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefRefPtr<CefBrowser> _browser;
+    BrowserInfo _info;
     IMPLEMENT_REFCOUNTING(RepaintTask);
 };

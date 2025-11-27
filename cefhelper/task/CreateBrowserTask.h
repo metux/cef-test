@@ -1,8 +1,19 @@
 class CreateBrowserTask: public CefTask {
 public:
     CreateBrowserTask(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook)
-        : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url), _webhook(webhook) {}
+        : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url), _webhook(webhook)
+    {
+        BrowserInfo inf = {
+            .width = width,
+            .height = height,
+        };
+
+        browser_info[idx] = inf;
+        fprintf(stderr, "++ stored geometry %d %d\n", browser_info[idx].width, browser_info[idx].height);
+    }
+
     void Execute() override {
+        fprintf(stderr, ">> stored geometry %d %d\n", browser_info[_idx].width, browser_info[_idx].height);
         CefBrowserHost::CreateBrowser(make_window_info(_parent_xid, _width, _height),
                                       new CefHelperHandler(_idx, _webhook),
                                       _url,

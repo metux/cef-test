@@ -19,8 +19,16 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
 
-static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
+class BrowserInfo {
+    public:
+        CefRefPtr<CefBrowser> browser;
+        Window xid;
+        int width;
+        int height;
+};
 
+static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
+static std::unordered_map<std::string,BrowserInfo> browser_info;
 
 class CefHelperHandler: public CefClient,
                         public CefLifeSpanHandler,
@@ -83,13 +91,19 @@ public:
 
     void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
         if (browsers[_idx] != nullptr)
-            fprintf(stderr, "WARNING: browser slot %s already taken\n", _idx);
+            fprintf(stderr, "WARNING: OnAfterCreate() browser slot %s already taken\n", _idx);
+
+        Window xid = (Window) browser->GetHost()->GetWindowHandle();
         browsers[_idx] = browser;
-        postEvent("browser.ready", "");
+        browser_info[_idx].xid = xid;
+        browser_info[_idx].browser = browser;
+        fprintf(stderr, "OnAfterCreated(): browser %s child window: %x\n", _idx.c_str(), xid);
+        postEvent("browser.ready", "{ \"xid\": \"" + std::to_string(xid) + "\" }");
     }
 
     void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
         browsers.erase(_idx);
+        browser_info.erase(_idx);
         postEvent("browser.close", "");
     }
 
@@ -402,10 +416,11 @@ void cefhelper_close(const char *idx)
 void cefhelper_repaint(const char *idx)
 {
     if (browsers[idx] == nullptr) {
-        fprintf(stderr, "WARNING: trying to close empty slot %s\n", idx);
+        fprintf(stderr, "WARNING: trying to repaint empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new RepaintTask(browsers[idx]));
+    fprintf(stderr, "repaint X=%d Y=%d\n", browser_info[idx].width, browser_info[idx].height);
+    CefPostTask(TID_UI, new RepaintTask(browsers[idx], browser_info[idx]));
 }
 
 void cefhelper_execjs(const char *idx, const char *code)
