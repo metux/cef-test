@@ -1,6 +1,6 @@
 class StopLoadTask : public CefTask {
 public:
-    StopLoadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    StopLoadTask(CefBrowserRef b) : browser(b) {}
     void Execute() override {
         if (!browser)
             return;
@@ -8,6 +8,6 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(StopLoadTask);
 };

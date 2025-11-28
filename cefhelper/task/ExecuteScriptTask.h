@@ -1,6 +1,6 @@
 class ExecuteScriptTask : public CefTask {
 public:
-    ExecuteScriptTask(CefRefPtr<CefBrowser> b, const std::string& code)
+    ExecuteScriptTask(CefBrowserRef b, const std::string& code)
         : browser(b), script(code) {}
     void Execute() override {
         if (!browser || !browser->GetMainFrame())
@@ -9,7 +9,7 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     std::string script;
     IMPLEMENT_REFCOUNTING(ExecuteScriptTask);
 };

@@ -1,6 +1,6 @@
 class RepaintTask: public CefTask {
 public:
-    RepaintTask(CefRefPtr<CefBrowser> b, BrowserInfo i) : _browser(b), _info(i) {}
+    RepaintTask(CefBrowserRef b, BrowserInfo i) : _browser(b), _info(i) {}
 
     void Execute() override {
         Display *dpy = cef_get_xdisplay();
@@ -15,7 +15,7 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> _browser;
+    CefBrowserRef _browser;
     BrowserInfo _info;
     IMPLEMENT_REFCOUNTING(RepaintTask);
 };

@@ -1,6 +1,6 @@
 class CloseTask: public CefTask {
 public:
-    CloseTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    CloseTask(CefBrowserRef b) : browser(b) {}
     void Execute() override {
         if (!browser)
             return;
@@ -10,6 +10,6 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(CloseTask);
 };

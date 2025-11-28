@@ -1,6 +1,9 @@
+
+// #include "../cefhelper_priv.h"
+
 class GoForwardTask: public CefTask {
 public:
-    GoForwardTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    GoForwardTask(CefBrowserRef b) : browser(b) {}
     void Execute() override {
         if (!browser)
             return;
@@ -8,6 +11,6 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(GoForwardTask);
 };

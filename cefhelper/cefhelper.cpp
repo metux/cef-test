@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <curl/curl.h>
 
-#include "cefhelper.h"
+#include "cefhelper_priv.h"
 #include "CefHelperApp.h"
 
 #include "include/capi/cef_app_capi.h"
@@ -23,13 +23,13 @@
 
 class BrowserInfo {
     public:
-        CefRefPtr<CefBrowser> browser;
+        CefBrowserRef browser;
         Window xid;
         int width;
         int height;
 };
 
-static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
+static std::unordered_map<std::string,CefBrowserRef> browsers;
 static std::unordered_map<std::string,BrowserInfo> browser_info;
 
 #include "task/GoForwardTask.h"
@@ -59,7 +59,7 @@ public:
     CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
     CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
 
-    void DUMP(CefRefPtr<CefBrowser> b, const char* tag) {
+    void DUMP(CefBrowserRef b, const char* tag) {
         if(!b) {
             fprintf(stderr, "[%s] browser=null\n", tag);
             return;
@@ -71,7 +71,7 @@ public:
     }
 
     CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(
-        CefRefPtr<CefBrowser> browser,
+        CefBrowserRef browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefRequest> request,
         bool is_navigation,
@@ -82,8 +82,23 @@ public:
         return this;
     }
 
+    void OnStatusMessage(CefBrowserRef browser, const CefString& value) override
+    {
+        fprintf(stderr, "STATUS: %s\n", value.ToString().c_str());
+    }
+
+    void OnTitleChange(CefBrowserRef browser, const CefString& title)
+    {
+        fprintf(stderr, "TITLE: %s\n", title.ToString().c_str());
+    }
+
+    virtual void OnLoadingProgressChange(CefBrowserRef browser, double progress)
+    {
+        fprintf(stderr, "PROGRESS: %f\n", progress);
+    }
+
     bool OnResourceResponse(
-        CefRefPtr<CefBrowser> browser,
+        CefBrowserRef browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefRequest> request,
         CefRefPtr<CefResponse> response) override
@@ -102,7 +117,7 @@ public:
         return true;
     }
 
-    void OnAfterCreated(CefRefPtr<CefBrowser> browser) override {
+    void OnAfterCreated(CefBrowserRef browser) override {
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: OnAfterCreate() browser slot %s already taken\n", _idx);
 
@@ -115,6 +130,8 @@ public:
 
         fprintf(stderr, "OnAfterCreated(): browser %s child window: %x style: %d\n",
             _idx.c_str(), xid, style);
+
+        browser->GetHost()->SetFocus(true);
 
         switch (style) {
             case CEF_RUNTIME_STYLE_DEFAULT:
@@ -133,14 +150,14 @@ public:
         );
     }
 
-    void OnBeforeClose(CefRefPtr<CefBrowser> browser) override {
+    void OnBeforeClose(CefBrowserRef browser) override {
         browsers.erase(_idx);
         browser_info.erase(_idx);
         postEvent("browser.close");
     }
 
     virtual bool OnBeforePopup(
-        CefRefPtr<CefBrowser> browser,
+        CefBrowserRef browser,
         CefRefPtr<CefFrame> frame,
         const CefString& target_url,
         const CefString& target_frame_name,
@@ -156,15 +173,27 @@ public:
         return true; // Returning true cancels popup creation
     }
 
-    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+    virtual bool OnPreKeyEvent(CefBrowserRef browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event,
                                bool* is_keyboard_shortcut) override
     {
+#ifdef USE_ALLOY
+        if (event.type == KEYEVENT_RAWKEYDOWN &&
+            (event.modifiers & EVENTFLAG_ALT_DOWN)) {
+            switch (event.windows_key_code) {
+                case 37: /* VK_LEFT - Ctrl+Left = GoBack */
+                    CefPostTask(TID_UI, new GoBackTask(browser));
+                    return true;  // Consume (don't pass to page)
+                case 39: /* VK_RIGHT - Ctrl+Right = GoForward */
+                    CefPostTask(TID_UI, new GoForwardTask(browser));
+                    return true;
+            }
+        }
+#endif /* USE_ALLOY */
         /* FIXME: differenciate between CTRL vs CTRL-SHIFT */
         if (event.type == KEYEVENT_RAWKEYDOWN &&
             (event.modifiers & EVENTFLAG_CONTROL_DOWN)) {
-
             switch (event.windows_key_code) {
                 case 'N': /* CTRL-N new tab */
                 case 'T': /* CTRL-T new window */
@@ -176,21 +205,13 @@ public:
                 case 'M': /* CTRL-SHIFT-M switch user */
                 case 'H': /* CTRL-H history window */
                     return true;
-#ifdef USE_ALLOY
-                case 37: /* VK_LEFT - Ctrl+Left = GoBack */
-                    CefPostTask(TID_UI, new GoBackTask(browser));
-                    return true;  // Consume (don't pass to page)
-                case 39: /* VK_RIGHT - Ctrl+Right = GoForward */
-                    CefPostTask(TID_UI, new GoForwardTask(browser));
-                    return true;
-#endif
             }
         }
 
         return false;
     }
 
-    bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
+    bool OnBeforeBrowse(CefBrowserRef browser,
                         CefRefPtr<CefFrame> frame,
                         CefRefPtr<CefRequest> request,
                         bool user_gesture,
@@ -203,7 +224,7 @@ public:
         return false;
     }
 
-    void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
+    void OnLoadingStateChange(CefBrowserRef browser,
                               bool isLoading,
                               bool canGoBack,
                               bool canGoForward) override
@@ -224,7 +245,7 @@ public:
         }
     }
 
-    void OnLoadError(CefRefPtr<CefBrowser> browser,
+    void OnLoadError(CefBrowserRef browser,
                      CefRefPtr<CefFrame> frame,
                      cef_errorcode_t errorCode,
                      const CefString& errorText,
@@ -240,7 +261,7 @@ public:
     }
 
     // CefRenderProcessHandler
-    virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+    virtual bool OnConsoleMessage(CefBrowserRef browser,
                                   cef_log_severity_t level,
                                   const CefString& message,
                                   const CefString& source,
@@ -268,7 +289,7 @@ public:
         return false;
     }
 
-    virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+    virtual void OnLoadEnd(CefBrowserRef browser,
                            CefRefPtr<CefFrame> frame,
                            int httpStatusCode) override
     {
@@ -321,7 +342,6 @@ private:
         struct curl_slist *hs = curl_slist_append(NULL, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
 
-        printf("webhook url %s...\n\n", url.c_str());
         CURLcode res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
@@ -329,7 +349,6 @@ private:
         } else {
             long http_code = 0;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-            printf("\n\nHTTP Status: %ld\n", http_code);
         }
 
         curl_easy_cleanup(curl);

@@ -53,6 +53,8 @@ public:
         // disable GCM / Firebase
         command_line->AppendSwitch("disable-features=WebPush,GCM");
         command_line->AppendSwitch("disable-sync");
+
+        command_line->AppendSwitch("enable-modern-net-error-page");
     }
 
     IMPLEMENT_REFCOUNTING(CefHelperApp);

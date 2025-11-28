@@ -1,6 +1,6 @@
 class ReloadTask : public CefTask {
 public:
-    ReloadTask(CefRefPtr<CefBrowser> b) : browser(b) {}
+    ReloadTask(CefBrowserRef b) : browser(b) {}
     void Execute() override {
         if (!browser)
             return;
@@ -11,6 +11,6 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(ReloadTask);
 };
