@@ -19,6 +19,8 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
 
+#define USE_ALLOY
+
 class BrowserInfo {
     public:
         CefRefPtr<CefBrowser> browser;
@@ -29,6 +31,17 @@ class BrowserInfo {
 
 static std::unordered_map<std::string,CefRefPtr<CefBrowser>> browsers;
 static std::unordered_map<std::string,BrowserInfo> browser_info;
+
+#include "task/GoForwardTask.h"
+#include "task/GoBackTask.h"
+#include "task/CloseTask.h"
+#include "task/CreateBrowserTask.h"
+#include "task/ExecuteScriptTask.h"
+#include "task/LoadURLTask.h"
+#include "task/ReloadTask.h"
+#include "task/StopLoadTask.h"
+#include "task/RepaintTask.h"
+#include "task/ResizeTask.h"
 
 class CefHelperHandler: public CefClient,
                         public CefLifeSpanHandler,
@@ -97,7 +110,22 @@ public:
         browsers[_idx] = browser;
         browser_info[_idx].xid = xid;
         browser_info[_idx].browser = browser;
-        fprintf(stderr, "OnAfterCreated(): browser %s child window: %x\n", _idx.c_str(), xid);
+
+        auto style = browser->GetHost()->GetRuntimeStyle();
+
+        fprintf(stderr, "OnAfterCreated(): browser %s child window: %x style: %d\n",
+            _idx.c_str(), xid, style);
+
+        switch (style) {
+            case CEF_RUNTIME_STYLE_DEFAULT:
+                fprintf(stderr, "CEF_RUNTIME_STYLE_DEFAULT\n"); break;
+            case CEF_RUNTIME_STYLE_ALLOY:
+                fprintf(stderr, "CEF_RUNTIME_STYLE_ALLOY\n"); break;
+            case CEF_RUNTIME_STYLE_CHROME:
+                fprintf(stderr, "CEF_RUNTIME_STYLE_CHROME\n"); break;
+            default:
+                fprintf(stderr, "CEF_RUNTIME_STYLE_UNKNOWN\n"); break;
+        }
 
         postEvent(
             "browser.ready",
@@ -148,6 +176,14 @@ public:
                 case 'M': /* CTRL-SHIFT-M switch user */
                 case 'H': /* CTRL-H history window */
                     return true;
+#ifdef USE_ALLOY
+                case 37: /* VK_LEFT - Ctrl+Left = GoBack */
+                    CefPostTask(TID_UI, new GoBackTask(browser));
+                    return true;  // Consume (don't pass to page)
+                case 39: /* VK_RIGHT - Ctrl+Right = GoForward */
+                    CefPostTask(TID_UI, new GoForwardTask(browser));
+                    return true;
+#endif
             }
         }
 
@@ -304,6 +340,10 @@ private:
     }
 };
 
+CefRefPtr<CefClient> createCefClient(std::string idx, std::string webhook) {
+    return new CefHelperHandler(idx, webhook);
+}
+
 bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
@@ -311,18 +351,6 @@ bool check_cef_subprocess(int argc, char *argv[]) {
             return true;
     }
     return false;
-}
-
-static CefWindowInfo make_window_info(uint32_t parent_xid, int width, int height) {
-    CefWindowInfo wi;
-    wi.SetAsChild(
-        (CefWindowHandle)parent_xid,
-        CefRect(0, 0, width, height));
-    return wi;
-}
-
-static CefBrowserSettings make_browser_settings(void) {
-    return CefBrowserSettings();
 }
 
 static CefSettings make_settings(void) {
@@ -374,17 +402,6 @@ int cefhelper_run()
     CefShutdown();
     return 0;
 }
-
-#include "task/CloseTask.h"
-#include "task/CreateBrowserTask.h"
-#include "task/ExecuteScriptTask.h"
-#include "task/LoadURLTask.h"
-#include "task/ReloadTask.h"
-#include "task/GoForwardTask.h"
-#include "task/StopLoadTask.h"
-#include "task/GoBackTask.h"
-#include "task/RepaintTask.h"
-#include "task/ResizeTask.h"
 
 void cefhelper_loadurl(const char *idx, const char *url)
 {

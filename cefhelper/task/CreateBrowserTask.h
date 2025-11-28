@@ -1,3 +1,6 @@
+
+CefRefPtr<CefClient> createCefClient(std::string idx, std::string webhook);
+
 class CreateBrowserTask: public CefTask {
 public:
     CreateBrowserTask(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook)
@@ -11,11 +14,22 @@ public:
         browser_info[idx] = inf;
     }
 
+    static CefWindowInfo make_window_info(uint32_t parent_xid, int width, int height) {
+        CefWindowInfo wi;
+        wi.SetAsChild(
+            (CefWindowHandle)parent_xid,
+            CefRect(0, 0, width, height));
+#ifdef USE_ALLOY
+        wi.runtime_style = CEF_RUNTIME_STYLE_ALLOY;
+#endif
+        return wi;
+    }
+
     void Execute() override {
         CefBrowserHost::CreateBrowser(make_window_info(_parent_xid, _width, _height),
-                                      new CefHelperHandler(_idx, _webhook),
+                                      createCefClient(_idx, _webhook),
                                       _url,
-                                      make_browser_settings(),
+                                      CefBrowserSettings(),
                                       nullptr,
                                       nullptr);
     }
