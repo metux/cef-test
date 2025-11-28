@@ -40,6 +40,16 @@ browserd REST API v1
 
 * GET /reload/{id}
 
+/repaint -- force browser repaint
+---------------------------------
+
+* GET /repaint/{id}
+
+/resize -- resize browser window
+---------------------------------
+
+* GET /resize/{id}/{width}/{height}
+
 /back -- go back in history
 ---------------------------
 
