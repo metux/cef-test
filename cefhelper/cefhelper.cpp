@@ -251,6 +251,9 @@ public:
                      const CefString& errorText,
                      const CefString& failedUrl) override
     {
+        fprintf(stderr, "[LOAD ERROR] code=%d err=\"%s\" url=\"%s\"\n",
+            errorCode, errorText.ToString().c_str(), failedUrl.ToString().c_str());
+
         browser->StopLoad();
         // this is breaking history (can't go backward anymore)
         //        frame->LoadURL("data:text/html,<h1>Offline</h1>");

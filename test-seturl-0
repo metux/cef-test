@@ -8,4 +8,6 @@ set -e
 URL="http://lunduke.com"
 URL="https://www.netcom.eu/"
 
+URL="http://www.kom-in.thur.de/"
+
 api_seturl "$SLOT_0" "$URL"

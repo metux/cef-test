@@ -55,6 +55,7 @@ public:
         command_line->AppendSwitch("disable-sync");
 
         command_line->AppendSwitch("enable-modern-net-error-page");
+        command_line->AppendSwitch("disable-legacy-error-pages");
     }
 
     IMPLEMENT_REFCOUNTING(CefHelperApp);
