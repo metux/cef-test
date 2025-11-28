@@ -113,11 +113,24 @@ static void handle_create(nanohttpd_xfer *xfer)
             xid = val;
     }
 
+    char key[34] = { 0 };
+    char *walk = key;
+    srand(time(NULL) ^ getpid());
+    for (int x=0; x<16; x++) {
+        unsigned char c = (unsigned char)rand();
+        sprintf(walk, "%02X", c);
+        walk ++;
+        walk ++;
+    }
+
+    if (strcmp(idx, "*")==0)
+        idx = key;
+
     int ret = cefhelper_create(idx, xid, width, height, hdr_url, hdr_webhook);
 
     // FIXME: should check for errors and send proper HTTP codes
     char reply[512];
-    sprintf(reply, "%d", ret);
+    sprintf(reply, "%s", idx);
     nanohttpd_xfer_reply_ok_text(xfer, NULL, reply);
 }
 
