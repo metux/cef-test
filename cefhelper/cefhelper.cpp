@@ -82,6 +82,29 @@ public:
         return this;
     }
 
+#if 0
+    CefResourceRequestHandler::ReturnValue OnResourceResponse(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        CefRefPtr<CefRequest> request,
+        CefRefPtr<CefResponse> response) override {
+
+        int status = response->GetStatus();
+        fprintf(stderr, "OnResourceFilter() status=%d\n", status);
+        if (status >= 400 && frame->IsMain()) {
+            fprintf(stderr, "--> server error\n");
+//            auto filter = CefResponseFilter::Create(new ErrorPageFilter(browser, frame));
+//            if (filter) {
+//                CefString text = response->GetStatusText();
+//                static_cast<ErrorPageFilter*>(filter.get())->SetStatus(status, text.ToString());
+//                active_filters_[request->GetIdentifier()] = filter;
+//                return RV_CONTINUE_ASYNC;  // crucial!
+//            }
+        }
+        return RV_CONTINUE;
+    }
+#endif
+
     void OnStatusMessage(CefBrowserRef browser, const CefString& value) override
     {
         fprintf(stderr, "STATUS: %s\n", value.ToString().c_str());
@@ -253,6 +276,21 @@ public:
     {
         fprintf(stderr, "[LOAD ERROR] code=%d err=\"%s\" url=\"%s\"\n",
             errorCode, errorText.ToString().c_str(), failedUrl.ToString().c_str());
+
+        if (errorCode == ERR_BLOCKED_BY_CLIENT) {
+            fprintf(stderr, "blocked by client\n");
+//            frame->LoadURL(failedUrl);
+            return;  // Abort default error handling
+        }
+
+        if (frame->IsMain() && errorCode == ERR_ABORTED) {
+            fprintf(stderr, "OnLoadError() code=ERR_ABORTED\n");
+            // This is the exact case: real 404 with body, but Chromium aborts commit
+            // → reload the same URL once, but with bypass of the broken error-page logic
+            frame->LoadURL(failedUrl);
+            return;
+        } else
+            fprintf(stderr, "OnLoadError() other err code %d\n", errorCode);
 
         browser->StopLoad();
         // this is breaking history (can't go backward anymore)

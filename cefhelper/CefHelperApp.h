@@ -48,14 +48,13 @@ public:
         command_line->AppendSwitch("disable-gpu-shader-disk-cache");
 
         // don't write trash to filesystem
-        command_line->AppendSwitch("incognito");
+//        command_line->AppendSwitch("incognito");
 
         // disable GCM / Firebase
         command_line->AppendSwitch("disable-features=WebPush,GCM");
         command_line->AppendSwitch("disable-sync");
 
-        command_line->AppendSwitch("enable-modern-net-error-page");
-        command_line->AppendSwitch("disable-legacy-error-pages");
+        command_line->AppendSwitch("disable-web-security");
     }
 
     IMPLEMENT_REFCOUNTING(CefHelperApp);
