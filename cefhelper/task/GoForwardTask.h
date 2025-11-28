@@ -1,5 +1,5 @@
 
-// #include "../cefhelper_priv.h"
+#include "../cefhelper_priv.h"
 
 class GoForwardTask: public CefTask {
 public:

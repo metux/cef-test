@@ -121,7 +121,6 @@ static void free_headers(struct nanohttpd_header *h) {
 }
 
 static void add_req_header(nanohttpd_xfer *xfer, const char* name, const char *value) {
-    fprintf(stderr, "add_req_header: name=\"%s\" value=\"%s\"\n", name, value);
     nanohttpd_header *hdr = calloc(1, sizeof(nanohttpd_header));
     hdr->name = strdup(name);
     hdr->value = strdup(value);
@@ -169,10 +168,6 @@ static void *client_thread(void *arg) {
     }
 
     srv_xfer.req_method = method;
-
-    if (strcmp(method, "POST")==0) {
-        fprintf(stderr, "POST DATA: %s\n", buf);
-    }
 
     // fix path: strip extra leading slashes
     char *path = xpath;
