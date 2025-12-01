@@ -82,26 +82,23 @@ public:
         return this;
     }
 
-#if 0
-    CefResourceRequestHandler::ReturnValue OnResourceResponse(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        CefRefPtr<CefRequest> request,
-        CefRefPtr<CefResponse> response) override {
+#ifdef USE_ALLOY
+    bool OnCertificateError(CefRefPtr<CefBrowser> browser,
+                            cef_errorcode_t cert_error,
+                            const CefString& request_url,
+                            CefRefPtr<CefSSLInfo> ssl_info,
+                            CefRefPtr<CefCallback> callback) override {
+        CEF_REQUIRE_UI_THREAD();
 
-        int status = response->GetStatus();
-        fprintf(stderr, "OnResourceFilter() status=%d\n", status);
-        if (status >= 400 && frame->IsMain()) {
-            fprintf(stderr, "--> server error\n");
-//            auto filter = CefResponseFilter::Create(new ErrorPageFilter(browser, frame));
-//            if (filter) {
-//                CefString text = response->GetStatusText();
-//                static_cast<ErrorPageFilter*>(filter.get())->SetStatus(status, text.ToString());
-//                active_filters_[request->GetIdentifier()] = filter;
-//                return RV_CONTINUE_ASYNC;  // crucial!
-//            }
-        }
-        return RV_CONTINUE;
+        // Log for debugging (optional)
+        fprintf(stderr, "SSL Cert Error %d on %s — bypassing\n",
+                cert_error, request_url.ToString().c_str());
+
+        // Force continue: Ignores outdated/expired cert, no interstitial
+        callback->Continue();
+
+        // Return true: We've handled it (don't let CEF show interstitial)
+        return true;
     }
 #endif
 
