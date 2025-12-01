@@ -8,6 +8,9 @@ set -e
 URL="http://lunduke.com"
 URL="https://www.netcom.eu/"
 
-URL="http://www.kom-in.thur.de/"
+# URL="http://www.kom-in.thur.de/"
+URL="http://no-such-server.example.com/"
+
+URL="http://127.0.0.2/"
 
 api_seturl "$SLOT_0" "$URL"

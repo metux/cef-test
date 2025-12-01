@@ -58,6 +58,20 @@ static void handle_repaint(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "repaint");
 }
 
+static void handle_zoom_in(nanohttpd_xfer *xfer)
+{
+    const char *idx = nanohttpd_next_elem_path(xfer);
+    cefhelper_zoom(idx, true);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "zoom");
+}
+
+static void handle_zoom_out(nanohttpd_xfer *xfer)
+{
+    const char *idx = nanohttpd_next_elem_path(xfer);
+    cefhelper_zoom(idx, false);
+    nanohttpd_xfer_reply_ok_text(xfer, NULL, "zoom");
+}
+
 static void handle_resize(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
@@ -182,6 +196,8 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/repaint", handle_repaint, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/resize", handle_resize, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom-in", handle_zoom_in, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom-out", handle_zoom_out, NULL);
 
     nanohttpd_serve_thread(&srv);
 

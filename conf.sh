@@ -15,6 +15,14 @@ api_back() {
     api_call "back/$1"
 }
 
+api_zoom_in() {
+    api_call "zoom-in/$1"
+}
+
+api_zoom_out() {
+    api_call "zoom-out/$1"
+}
+
 api_repaint() {
     api_call "repaint/$1"
 }

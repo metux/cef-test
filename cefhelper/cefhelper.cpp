@@ -42,6 +42,7 @@ static std::unordered_map<std::string,BrowserInfo> browser_info;
 #include "task/StopLoadTask.h"
 #include "task/RepaintTask.h"
 #include "task/ResizeTask.h"
+#include "task/ZoomTask.h"
 
 class CefHelperHandler: public CefClient,
                         public CefLifeSpanHandler,
@@ -532,6 +533,18 @@ void cefhelper_resize(const char *idx, int w, int h)
     browser_info[idx].width = w;
     browser_info[idx].height = h;
     CefPostTask(TID_UI, new ResizeTask(browser_info[idx]));
+}
+
+void cefhelper_zoom(const char *idx, bool inout)
+{
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: trying to zoom empty slot %s\n", idx);
+        return;
+    }
+    CefPostTask(TID_UI, new ZoomTask(
+        browser_info[idx].browser,
+        inout ? ZoomTask::Op::In : ZoomTask::Op::Out,
+        0));
 }
 
 void cefhelper_execjs(const char *idx, const char *code)
