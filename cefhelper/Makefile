@@ -21,3 +21,5 @@ $(CEFHELPER_LIB): $(CEFHELPER_OBJS)
 	$(AR) rcs $@ $(CEFHELPER_OBJS)
 
 cefhelper.o:: task/*.h cefhelper.h cefhelper_priv.h
+
+cefhelper.o:: CefHelperApp.h
