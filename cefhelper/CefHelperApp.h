@@ -16,14 +16,6 @@ public:
     {
         command_line->AppendSwitch("single-process");
 
-        command_line->AppendSwitch("safebrowsing-disable-download-protection");
-        command_line->AppendSwitch("safebrowsing-disable-extension-blacklist");
-        command_line->AppendSwitchWithValue("safe-browsing-mode", "0");        // completely off
-        command_line->AppendSwitch("allow-running-insecure-content");
-        command_line->AppendSwitch("ignore-certificate-errors");
-        command_line->AppendSwitch("ignore-ssl-errors");
-        command_line->AppendSwitch("ignore-certificate-errors-spki-list");
-
         command_line->AppendSwitchWithValue("enable-features", "PartitionAllocBackupRefPtr,PartitionAllocDanglingPtr:mode/log_only/type/cross_task");
         command_line->AppendSwitchWithValue("disable-features", "AdBlocking,BlockingDownloads,WebRtcAllowLocalhostByDefault,SafeBrowsing,SslErrorInterstitial");
 
