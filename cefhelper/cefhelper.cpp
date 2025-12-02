@@ -535,16 +535,18 @@ void cefhelper_resize(const char *idx, int w, int h)
     CefPostTask(TID_UI, new ResizeTask(browser_info[idx]));
 }
 
-void cefhelper_zoom(const char *idx, bool inout)
+void cefhelper_zoom(const char *idx, cefhelper_zoom_mode_t mode, double level)
 {
     if (browsers[idx] == nullptr) {
         fprintf(stderr, "WARNING: trying to zoom empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new ZoomTask(
-        browser_info[idx].browser,
-        inout ? ZoomTask::Op::In : ZoomTask::Op::Out,
-        0));
+
+    fprintf(stderr, "zoom: idx=%s\n", idx);
+    fprintf(stderr, "      mode=%d\n", mode);
+    fprintf(stderr, "      level=%f\n", level);
+
+    CefPostTask(TID_UI, new ZoomTask(browser_info[idx].browser, mode, level));
 }
 
 void cefhelper_execjs(const char *idx, const char *code)

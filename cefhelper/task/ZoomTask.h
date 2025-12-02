@@ -3,32 +3,39 @@
 
 class ZoomTask : public CefTask {
 public:
-    enum class Op { Set, In, Out, Reset };
-
-    ZoomTask(CefRefPtr<CefBrowser> b, Op op, double delta = 0.0)
-        : browser(b), operation(op), delta(delta) {}
+    ZoomTask(CefRefPtr<CefBrowser> b, cefhelper_zoom_mode_t mode, double delta = 0.0)
+        : _browser(b), _mode(mode), _delta(delta) {}
 
     void Execute() override {
-        if (!browser || !browser->GetHost())
+        fprintf(stderr, "ZoomTask::Execute()\n");
+        if (!_browser)
             return;
 
-        if (operation == Op::Reset) {
-            browser->GetHost()->SetZoomLevel(0.0);
-        } else if (operation == Op::Set) {
-            browser->GetHost()->SetZoomLevel(delta);
-        } else {
-            double current = browser->GetHost()->GetZoomLevel();
-            double step = 0.25;  // you can make this configurable
-            if (operation == Op::In)
-                browser->GetHost()->SetZoomLevel(current + step);
-            else
-                browser->GetHost()->SetZoomLevel(current - step);
+        auto host = _browser->GetHost();
+        if (!host)
+            return;
+
+        switch (_mode) {
+            case CEFHELPER_ZOOM_SET:
+                fprintf(stderr, "zoom set\n");
+                host->SetZoomLevel(_delta);
+            break;
+            case CEFHELPER_ZOOM_IN:
+                fprintf(stderr, "zoom in: %f\n", (_delta ? _delta : 0.25));
+                host->SetZoomLevel(
+                    host->GetZoomLevel() + (_delta ? _delta : 0.25));
+            break;
+            case CEFHELPER_ZOOM_OUT:
+                fprintf(stderr, "zoom out: %f\n", (_delta ? _delta : 0.25));
+                host->SetZoomLevel(
+                    host->GetZoomLevel() - (_delta ? _delta : 0.25));
+            break;
         }
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
-    Op operation;
-    double delta;
+    CefRefPtr<CefBrowser> _browser;
+    cefhelper_zoom_mode_t _mode;
+    double _delta;
     IMPLEMENT_REFCOUNTING(ZoomTask);
 };
