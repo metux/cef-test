@@ -62,7 +62,10 @@ static void handle_zoom(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
     const char *op = nanohttpd_next_elem_path(xfer);
-    uint32_t delta = nanohttpd_next_elem_int_dec(xfer);
+    uint32_t val = nanohttpd_next_elem_int_dec(xfer);
+    float delta = ((float)val) / 100;
+
+    fprintf(stderr, "handle_zoom: delta=%f\n", delta);
 
     if (strcmp(op, "in")==0)
         cefhelper_zoom(idx, CEFHELPER_ZOOM_IN, delta);

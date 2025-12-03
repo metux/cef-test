@@ -4,6 +4,7 @@ SLOT_1="wintest-1-1"
 SLOT_3="wintest-1-2"
 
 api_call() {
+    echo "API: $URL_PREFIX/$*"
     curl "$URL_PREFIX/$*"
 }
 
@@ -16,7 +17,7 @@ api_back() {
 }
 
 api_zoom() {
-    api_call "zoom/$1/$2"
+    api_call "zoom/$1/$2/$3"
 }
 
 api_repaint() {
