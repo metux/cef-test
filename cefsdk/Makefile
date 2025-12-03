@@ -31,9 +31,7 @@ all: $(CEFSDK_MARKER)
 	$(MAKE) $(WRAPPER_LIB)
 
 $(CEFSDK_TARBALL):
-	@echo ">>> Downloading CEF $(CEF_VERSION)"
-	@mkdir `dirname "$@"`
-	@curl -L -o $@ $(CEF_URL)
+	( cd .. && ./download_cef )
 
 $(CEFSDK_MARKER): $(CEFSDK_TARBALL)
 	@echo ">>> Unpacking CEF"

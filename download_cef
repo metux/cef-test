@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+
+RELEASE=2025-12-03-02
+
+DOWNLOAD_DIR=cefsdk/download
+DOWNLOAD_URL=https://github.com/metux/cef-suckless/releases/download/
+TARBALL=cef_binary-$RELEASE.tar.bz2
+
+mkdir -p $DOWNLOAD_DIR
+
+if [ -f $DOWNLOAD_DIR/$TARBALL ]; then
+    echo "$0: release $RELEASE already downloaded" >&1
+    echo "remove $DOWNLOAD_DIR/$TARBALL to force download" >&1
+    exit 1
+fi
+
+( cd $DOWNLOAD_DIR && \
+    wget $DOWNLOAD_URL/$RELEASE/$TARBALL && \
+    ln -sf $TARBALL cef.tar.bz2 )
