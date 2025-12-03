@@ -23,3 +23,13 @@ run:
 
 gdb:
 	$(MAKE) -C browserd gdb
+
+bundle: all
+	$(MAKE) -C browserd bundle
+
+install: bundle
+	mkdir -p $(DESTDIR)/$(INSTALL_PREFIX)/
+	cp -R $(DIST_DIR)/* $(DESTDIR)/$(INSTALL_PREFIX)
+	mkdir -p $(DESTDIR)/$(BINDIR)
+	cat browserd.in | sed -e 's~__PREFIX__~$(INSTALL_PREFIX)~g;' > $(DESTDIR)/$(BINDIR)/browserd
+	chmod ugo+x $(DESTDIR)/$(BINDIR)/browserd

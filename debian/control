@@ -1,0 +1,12 @@
+Source: browserd
+Maintainer: Enrico Weigelt, metux IT consult <info@metux.net>
+Section: admin
+Priority: optional
+Build-Depends: make, wget, pkgconf, libx11-dev, libxcursor-dev, libcurl-dev, libcups2, libglib2.0-0, libatk1.0-0, libatk-bridge2.0-0, libxext-dev, libxcomposite1, libxdamage1, libxrandr2, libxkbcommon0, libgbm1, libcairo2, libpango-1.0-0, libasound2
+Standards-Version: 3.9.7
+
+Package: browserd
+Architecture: any
+Section: admin
+Depends: ${misc:Depends}, libx11-6, libxcursor1, libcurl4, libcups2, libglib2.0-0, libatk1.0-0, libatk-bridge2.0-0, libxcomposite1, libxdamage1, libxrandr2, libxkbcommon0, libgbm1, libcairo2, libpango-1.0-0, libasound2
+Description: CEF browser daemon

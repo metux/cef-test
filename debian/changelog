@@ -1,0 +1,5 @@
+browserd (0.1) stretch; urgency=low
+
+  * Generic Debian packaging
+
+ -- Enrico Weigelt, metux IT consult <info@metux.net>  Wed, 03 Dec 2025 16:07:00 +0100

@@ -2,6 +2,11 @@ CEF_TARBALL := cef.tar.bz2
 CEF_DIR := $(srcroot)/cefsdk/cef
 CEF_BUILD_TYPE := Release
 
+BINDIR ?= /usr/bin
+LIBDIR ?= /usr/lib
+
+INSTALL_PREFIX ?= $(LIBDIR)/browserd
+
 PKG_CONFIG ?= pkgconf
 
 X11_LIBS := $(shell $(PKG_CONFIG) --libs x11 xcursor xext)
