@@ -58,27 +58,22 @@ static void handle_repaint(nanohttpd_xfer *xfer)
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "repaint");
 }
 
-static void handle_zoom_in(nanohttpd_xfer *xfer)
+static void handle_zoom(nanohttpd_xfer *xfer)
 {
     const char *idx = nanohttpd_next_elem_path(xfer);
+    const char *op = nanohttpd_next_elem_path(xfer);
     uint32_t delta = nanohttpd_next_elem_int_dec(xfer);
-    cefhelper_zoom(idx, CEFHELPER_ZOOM_IN, delta);
-    nanohttpd_xfer_reply_ok_text(xfer, NULL, "zoom");
-}
 
-static void handle_zoom_out(nanohttpd_xfer *xfer)
-{
-    const char *idx = nanohttpd_next_elem_path(xfer);
-    uint32_t delta = nanohttpd_next_elem_int_dec(xfer);
-    cefhelper_zoom(idx, CEFHELPER_ZOOM_OUT, delta);
-    nanohttpd_xfer_reply_ok_text(xfer, NULL, "zoom");
-}
-
-static void handle_zoom_set(nanohttpd_xfer *xfer)
-{
-    const char *idx = nanohttpd_next_elem_path(xfer);
-    uint32_t delta = nanohttpd_next_elem_int_dec(xfer);
-    cefhelper_zoom(idx, CEFHELPER_ZOOM_SET, delta);
+    if (strcmp(op, "in")==0)
+        cefhelper_zoom(idx, CEFHELPER_ZOOM_IN, delta);
+    else if (strcmp(op, "out")==0)
+        cefhelper_zoom(idx, CEFHELPER_ZOOM_OUT, delta);
+    else if (strcmp(op, "set")==0)
+        cefhelper_zoom(idx, CEFHELPER_ZOOM_SET, delta);
+    else {
+        nanohttpd_xfer_reply_bad_text(xfer, NULL, "unsupported operation");
+        return;
+    }
     nanohttpd_xfer_reply_ok_text(xfer, NULL, "zoom");
 }
 
@@ -206,9 +201,7 @@ int main(int argc, char* argv[])
     nanohttpd_register_handler(&srv, "/api/v1/browser/list", handle_list, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/repaint", handle_repaint, NULL);
     nanohttpd_register_handler(&srv, "/api/v1/browser/resize", handle_resize, NULL);
-    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom-in", handle_zoom_in, NULL);
-    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom-out", handle_zoom_out, NULL);
-    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom-set", handle_zoom_set, NULL);
+    nanohttpd_register_handler(&srv, "/api/v1/browser/zoom", handle_zoom, NULL);
 
     nanohttpd_serve_thread(&srv);
 

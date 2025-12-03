@@ -74,3 +74,12 @@ browserd REST API v1
 -----------------------
 
 * GET /close/{id}
+
+/zoom -- set zoom level
+-----------------------
+
+* GET /close/{id}/{op}[/{level}]
+* level is devided by 100
+* op=in: zoom in. if level not set, use 25 (=.25) as default stepping
+* op=out: zoom out. if level not set, use 25 (=.25) as default stepping
+* op=set: set level. if level not set, use 100 (=1) as default level

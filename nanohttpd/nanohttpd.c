@@ -330,7 +330,14 @@ void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
                                   const char *content_type,
                                   const char *data)
 {
-    nanohttpd_xfer_reply_text(xfer, "200 OK", content_type, data);
+    nanohttpd_xfer_reply_text(xfer, NANOHTTPD_RESPONSE_OK, content_type, data);
+}
+
+void nanohttpd_xfer_reply_bad_text(nanohttpd_xfer *xfer,
+                                   const char *content_type,
+                                   const char *data)
+{
+    nanohttpd_xfer_reply_text(xfer, NANOHTTPD_RESPONSE_BAD_REQUEST, content_type, data);
 }
 
 int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer)

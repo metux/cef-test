@@ -72,6 +72,10 @@ void nanohttpd_xfer_reply_ok_text(nanohttpd_xfer *xfer,
                                   const char *content_type,
                                   const char *data);
 
+void nanohttpd_xfer_reply_bad_text(nanohttpd_xfer *xfer,
+                                   const char *content_type,
+                                   const char *data);
+
 void nanohttpd_urldecode(char *buffer);
 
 int nanohttpd_next_elem_int_dec(nanohttpd_xfer *xfer);
