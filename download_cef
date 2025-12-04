@@ -5,7 +5,7 @@ set -e
 RELEASE=2025-12-03-02
 
 DOWNLOAD_DIR=cefsdk/download
-DOWNLOAD_URL=https://github.com/metux/cef-suckless/releases/download/
+DOWNLOAD_URL=https://github.com/metux/cef-chromium/releases/download/
 TARBALL=cef_binary-$RELEASE.tar.bz2
 
 mkdir -p $DOWNLOAD_DIR
