@@ -18,6 +18,9 @@ CEF_CFLAGS := -I$(CEF_DIR)
 CURL_LIBS := $(shell $(PKG_CONFIG) --libs libcurl)
 CURL_CFLAGS := $(shell $(PKG_CONFIG) --cflags libcurl)
 
+GTK_LIBS := $(shell $(PKG_CONFIG) --libs gtk+-3.0)
+GTK_CFLAGS := $(shell $(PKG_CONFIG) --cflags gtk+-3.0)
+
 CEFHELPER_LIBS := $(srcroot)/cefhelper/libcefhelper.a
 CEFHELPER_CFLAGS := -I$(srcroot)/cefhelper
 
