@@ -40,6 +40,7 @@ static std::unordered_map<std::string,BrowserInfo> browser_info;
 #include "task/LoadURLTask.h"
 #include "task/ReloadTask.h"
 #include "task/StopLoadTask.h"
+#include "task/PrintTask.h"
 #include "task/RepaintTask.h"
 #include "task/ResizeTask.h"
 #include "task/ZoomTask.h"
@@ -444,8 +445,23 @@ int cefhelper_subprocess(int argc, char *argv[]) {
     return CefExecuteProcess(main_args, app, nullptr);
 }
 
+#include <gtk/gtk.h>  // Minimal GTK for delegate init
+#include <gdk/gdk.h>
+
+static void InitGtkDelegate() {
+    // Init GTK minimally (no full loop, just for singleton)
+    if (!gtk_init_check(0, nullptr)) {
+        fprintf(stderr, "[CEF] WARNING: GTK init failed — printing may crash\n");
+        return;
+    }
+
+    fprintf(stderr, "[CEF] GTK delegate initialized (printing fix)\n");
+}
+
 int cefhelper_run()
 {
+    InitGtkDelegate();
+
     /* dont pass it our actual args */
     CefRefPtr<CefHelperApp> app = new CefHelperApp();
     if (!CefInitialize(CefMainArgs(0, NULL),
@@ -556,6 +572,15 @@ void cefhelper_execjs(const char *idx, const char *code)
         return;
     }
     CefPostTask(TID_UI, new ExecuteScriptTask(browsers[idx], code));
+}
+
+void cefhelper_print(const char *idx)
+{
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: print on empty slot %s\n", idx);
+        return;
+    }
+    CefPostTask(TID_UI, new PrintTask(browsers[idx], true));
 }
 
 void cefhelper_closeall(void)

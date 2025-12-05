@@ -20,6 +20,10 @@ api_zoom() {
     api_call "zoom/$1/$2/$3"
 }
 
+api_print() {
+    api_call "print/$1"
+}
+
 api_repaint() {
     api_call "repaint/$1"
 }
