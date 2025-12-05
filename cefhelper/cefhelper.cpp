@@ -40,6 +40,7 @@ static std::unordered_map<std::string,BrowserInfo> browser_info;
 #include "task/LoadURLTask.h"
 #include "task/ReloadTask.h"
 #include "task/StopLoadTask.h"
+#include "task/PrintTask.h"
 #include "task/RepaintTask.h"
 #include "task/ResizeTask.h"
 #include "task/ZoomTask.h"
@@ -556,6 +557,15 @@ void cefhelper_execjs(const char *idx, const char *code)
         return;
     }
     CefPostTask(TID_UI, new ExecuteScriptTask(browsers[idx], code));
+}
+
+void cefhelper_print(const char *idx)
+{
+    if (browsers[idx] == nullptr) {
+        fprintf(stderr, "WARNING: print on empty slot %s\n", idx);
+        return;
+    }
+    CefPostTask(TID_UI, new PrintTask(browsers[idx], true));
 }
 
 void cefhelper_closeall(void)

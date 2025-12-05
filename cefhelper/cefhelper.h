@@ -25,6 +25,7 @@ void cefhelper_stopload(const char *idx);
 void cefhelper_goback(const char *idx);
 void cefhelper_goforward(const char *idx);
 void cefhelper_execjs(const char *idx, const char *code);
+void cefhelper_print(const char *idx);
 void cefhelper_close(const char *idx);
 void cefhelper_repaint(const char *idx);
 void cefhelper_resize(const char *idx, int w, int h);
