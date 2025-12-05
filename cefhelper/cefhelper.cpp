@@ -51,7 +51,10 @@ class CefHelperHandler: public CefClient,
                         public CefLoadHandler,
                         public CefDisplayHandler,
                         public CefRequestHandler,
-                        public CefResourceRequestHandler {
+                        public CefResourceRequestHandler,
+                        public CefRenderHandler,
+                        public CefFocusHandler,
+                        public CefPrintHandler {
 public:
     CefHelperHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
 
@@ -60,6 +63,52 @@ public:
     CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
     CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
     CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
+    CefRefPtr<CefRenderHandler> GetRenderHandler() override { return this; }
+    CefRefPtr<CefFocusHandler>   GetFocusHandler()   override { return this; }
+    CefRefPtr<CefPrintHandler>   GetPrintHandler()   override { return this; }
+
+    // === 1. Give CEF a valid view rectangle (MANDATORY for shortcuts in OSR
+    void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override {
+        CEF_REQUIRE_UI_THREAD();
+        // Give it the actual size you passed to CreateBrowser
+        // You can store width/height in the handler if needed, or just fake it
+        rect = CefRect(0, 0, 1920, 1080);  // or real size – doesn't have to be exact
+    }
+
+    // === 2. Tell CEF we have focus (critical!)
+    void OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next) override {}
+    bool OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source) override {
+        CEF_REQUIRE_UI_THREAD();
+        return true;
+    }
+    void OnGotFocus(CefRefPtr<CefBrowser> browser) override {
+        CEF_REQUIRE_UI_THREAD();
+        // This is the magic line – without it, NO shortcuts work in OSR
+        browser->GetHost()->SetFocus(true);
+    }
+
+    // === 4. Trigger Chrome's real print dialog
+    void OnPrintStart(CefRefPtr<CefBrowser> browser) override {
+        CEF_REQUIRE_UI_THREAD();
+        fprintf(stderr, "Ctrl+P detected – showing Chrome print dialog\n");
+        browser->GetHost()->Print();  // ← this now works
+    }
+
+    void OnPaint(CefRefPtr<CefBrowser>, PaintElementType, const RectList&, const void*, int, int) override {
+        fprintf(stderr, "OnPaint()\n");
+    }
+    void OnPrintSettings(CefRefPtr<CefBrowser>, CefRefPtr<CefPrintSettings>, bool) override {
+        fprintf(stderr, "OnPrintSettings\n");
+    }
+    bool OnPrintDialog(CefRefPtr<CefBrowser>, bool, CefRefPtr<CefPrintDialogCallback>) override {
+        fprintf(stderr, "OnPrintDialog\n");
+        return false;
+    }
+    bool OnPrintJob(CefRefPtr<CefBrowser>, const CefString&, const CefString&, CefRefPtr<CefPrintJobCallback>) override {
+        fprintf(stderr, "OnPrintJob\n");
+        return false;
+    }
+    void OnPrintReset(CefRefPtr<CefBrowser>) override { fprintf(stderr, "OnPrintReset\n"); }
 
     void DUMP(CefBrowserRef b, const char* tag) {
         if(!b) {
@@ -222,7 +271,7 @@ public:
                 case 'B': /* CTRL-B bookmarks window */
                 case 'D': /* CTRL-D add bookmark */
 //                case 'W': /* CTRL-W close window */
-                case 'P': /* CTRL-P print */
+//                case 'P': /* CTRL-P print */
                 case 'J': /* CTRL-J downloads window */
                 case 'M': /* CTRL-SHIFT-M switch user */
                 case 'H': /* CTRL-H history window */
