@@ -7,11 +7,11 @@ public:
         browser->GoBack();
     }
 
-    static void Do(CefBrowserRef browser) {
-        CefPostTask(TID_UI, new GoBackTask(browser));
-    }
-
 private:
     CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(GoBackTask);
 };
+
+void taskBack(CefBrowserRef b) {
+    CefPostTask(TID_UI, new GoBackTask(b));
+}

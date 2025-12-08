@@ -19,3 +19,7 @@ private:
     BrowserInfo _info;
     IMPLEMENT_REFCOUNTING(RepaintTask);
 };
+
+void taskRepaint(CefBrowserRef b, BrowserInfo i) {
+    CefPostTask(TID_UI, new RepaintTask(b, i));
+}

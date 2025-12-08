@@ -25,3 +25,7 @@ private:
     bool show_dialog;
     IMPLEMENT_REFCOUNTING(PrintTask);
 };
+
+void taskPrint(CefBrowserRef b) {
+    CefPostTask(TID_UI, new PrintTask(b, true));
+}

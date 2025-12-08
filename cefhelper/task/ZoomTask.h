@@ -39,3 +39,7 @@ private:
     double _delta;
     IMPLEMENT_REFCOUNTING(ZoomTask);
 };
+
+void taskZoom(CefBrowserRef b, cefhelper_zoom_mode_t m, double l) {
+    CefPostTask(TID_UI, new ZoomTask(b, m, l));
+}

@@ -3,7 +3,7 @@ CefRefPtr<CefClient> createCefClient(std::string idx, std::string webhook);
 
 class CreateBrowserTask: public CefTask {
 public:
-    CreateBrowserTask(const char *idx, uint32_t parent_xid, int width, int height, const char *url, const char *webhook)
+    CreateBrowserTask(std::string idx, uint32_t parent_xid, int width, int height, std::string url, std::string webhook)
         : _idx(idx), _parent_xid(parent_xid), _width(width), _height(height), _url(url), _webhook(webhook)
     {
         BrowserInfo inf = {
@@ -43,3 +43,7 @@ private:
     std::string _webhook;
     IMPLEMENT_REFCOUNTING(CreateBrowserTask);
 };
+
+void taskCreate(std::string idx, uint32_t parent_xid, int width, int height, std::string url, std::string webhook) {
+    CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, url, webhook));
+}

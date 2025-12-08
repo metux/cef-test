@@ -11,3 +11,7 @@ private:
     std::string url;
     IMPLEMENT_REFCOUNTING(LoadURLTask);
 };
+
+void taskLoadURL(CefBrowserRef b, std::string u) {
+    CefPostTask(TID_UI, new LoadURLTask(b, u));
+}

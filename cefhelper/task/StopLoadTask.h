@@ -11,3 +11,7 @@ private:
     CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(StopLoadTask);
 };
+
+void taskStopLoad(CefBrowserRef b) {
+    CefPostTask(TID_UI, new StopLoadTask(b));
+}

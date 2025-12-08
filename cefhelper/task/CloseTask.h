@@ -13,3 +13,7 @@ private:
     CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(CloseTask);
 };
+
+void taskClose(CefBrowserRef b) {
+    CefPostTask(TID_UI, new CloseTask(b));
+}

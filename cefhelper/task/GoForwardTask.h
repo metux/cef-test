@@ -14,3 +14,7 @@ private:
     CefBrowserRef browser;
     IMPLEMENT_REFCOUNTING(GoForwardTask);
 };
+
+void taskForward(CefBrowserRef b) {
+    CefPostTask(TID_UI, new GoForwardTask(b));
+}

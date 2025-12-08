@@ -13,3 +13,7 @@ private:
     std::string script;
     IMPLEMENT_REFCOUNTING(ExecuteScriptTask);
 };
+
+void taskExecuteScript(CefBrowserRef b, const std::string& code) {
+    CefPostTask(TID_UI, new ExecuteScriptTask(b, code));
+}

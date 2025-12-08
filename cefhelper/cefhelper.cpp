@@ -205,10 +205,10 @@ public:
             (event.modifiers & EVENTFLAG_ALT_DOWN)) {
             switch (event.windows_key_code) {
                 case 37: /* VK_LEFT - Ctrl+Left = GoBack */
-                    CefPostTask(TID_UI, new GoBackTask(browser));
+                    taskBack(browser);
                     return true;  // Consume (don't pass to page)
                 case 39: /* VK_RIGHT - Ctrl+Right = GoForward */
-                    CefPostTask(TID_UI, new GoForwardTask(browser));
+                    taskForward(browser);
                     return true;
             }
         }
@@ -468,7 +468,7 @@ void cefhelper_loadurl(const char *idx, const char *url)
         fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new LoadURLTask(browsers[idx], url));
+    taskLoadURL(browsers[idx], url);
 }
 
 void cefhelper_reload(const char *idx)
@@ -477,7 +477,7 @@ void cefhelper_reload(const char *idx)
         fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new ReloadTask(browsers[idx]));
+    taskReload(browsers[idx]);
 }
 
 void cefhelper_stopload(const char *idx)
@@ -486,7 +486,7 @@ void cefhelper_stopload(const char *idx)
         fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new StopLoadTask(browsers[idx]));
+    taskStopLoad(browsers[idx]);
 }
 
 void cefhelper_goback(const char *idx)
@@ -495,7 +495,7 @@ void cefhelper_goback(const char *idx)
         fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new GoBackTask(browsers[idx]));
+    taskBack(browsers[idx]);
 }
 
 void cefhelper_goforward(const char *idx)
@@ -504,7 +504,7 @@ void cefhelper_goforward(const char *idx)
         fprintf(stderr, "WARNING: trying to access empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new GoForwardTask(browsers[idx]));
+    taskForward(browsers[idx]);
 }
 
 void cefhelper_close(const char *idx)
@@ -513,7 +513,7 @@ void cefhelper_close(const char *idx)
         fprintf(stderr, "WARNING: trying to close empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new CloseTask(browsers[idx]));
+    taskClose(browsers[idx]);
 }
 
 void cefhelper_repaint(const char *idx)
@@ -522,7 +522,7 @@ void cefhelper_repaint(const char *idx)
         fprintf(stderr, "WARNING: trying to repaint empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new RepaintTask(browsers[idx], browser_info[idx]));
+    taskRepaint(browsers[idx], browser_info[idx]);
 }
 
 void cefhelper_resize(const char *idx, int w, int h)
@@ -533,7 +533,7 @@ void cefhelper_resize(const char *idx, int w, int h)
     }
     browser_info[idx].width = w;
     browser_info[idx].height = h;
-    CefPostTask(TID_UI, new ResizeTask(browser_info[idx]));
+    taskResize(browser_info[idx]);
 }
 
 void cefhelper_zoom(const char *idx, cefhelper_zoom_mode_t mode, double level)
@@ -547,7 +547,7 @@ void cefhelper_zoom(const char *idx, cefhelper_zoom_mode_t mode, double level)
     fprintf(stderr, "      mode=%d\n", mode);
     fprintf(stderr, "      level=%f\n", level);
 
-    CefPostTask(TID_UI, new ZoomTask(browser_info[idx].browser, mode, level));
+    taskZoom(browser_info[idx].browser, mode, level);
 }
 
 void cefhelper_execjs(const char *idx, const char *code)
@@ -556,7 +556,7 @@ void cefhelper_execjs(const char *idx, const char *code)
         fprintf(stderr, "WARNING: execjs on empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new ExecuteScriptTask(browsers[idx], code));
+    taskExecuteScript(browsers[idx], code);
 }
 
 void cefhelper_print(const char *idx)
@@ -565,14 +565,14 @@ void cefhelper_print(const char *idx)
         fprintf(stderr, "WARNING: print on empty slot %s\n", idx);
         return;
     }
-    CefPostTask(TID_UI, new PrintTask(browsers[idx], true));
+    taskPrint(browsers[idx]);
 }
 
 void cefhelper_closeall(void)
 {
     for (const auto& pair : browsers) {
         if (pair.second != nullptr) {
-            CefPostTask(TID_UI, new CloseTask(pair.second));
+            taskClose(pair.second);
         }
     }
 }
@@ -583,7 +583,7 @@ int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height
         fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
     }
-    CefPostTask(TID_UI, new CreateBrowserTask(idx, parent_xid, width, height, strdup(url), strdup(webhook)));
+    taskCreate(idx, parent_xid, width, height, url, webhook);
     return 0;
 }
 

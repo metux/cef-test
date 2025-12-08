@@ -13,3 +13,7 @@ private:
     BrowserInfo _info;
     IMPLEMENT_REFCOUNTING(ResizeTask);
 };
+
+void taskResize(BrowserInfo i) {
+    CefPostTask(TID_UI, new ResizeTask(i));
+}
