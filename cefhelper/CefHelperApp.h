@@ -14,8 +14,6 @@ public:
             const CefString& process_type,
             CefRefPtr<CefCommandLine> command_line) override
     {
-        command_line->AppendSwitch("single-process");
-
         command_line->AppendSwitchWithValue("enable-features", "PartitionAllocBackupRefPtr,PartitionAllocDanglingPtr:mode/log_only/type/cross_task");
         command_line->AppendSwitchWithValue("disable-features", "AdBlocking,BlockingDownloads,WebRtcAllowLocalhostByDefault,SafeBrowsing,SslErrorInterstitial");
 
