@@ -18,6 +18,7 @@
 #include "include/cef_render_handler.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/internal/cef_linux.h"
+#include "include/cef_print_handler.h"
 
 #define USE_ALLOY
 
@@ -43,6 +44,7 @@ class CefHelperHandler: public CefClient,
                         public CefLoadHandler,
                         public CefDisplayHandler,
                         public CefRequestHandler,
+                        public CefPrintHandler,
                         public CefResourceRequestHandler {
 public:
     CefHelperHandler(std::string idx, std::string webhook) : _idx(idx), _webhook(webhook) {}
@@ -52,6 +54,7 @@ public:
     CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
     CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override { return this; }
     CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
+    CefRefPtr<CefPrintHandler> GetPrintHandler() override { return this; }
 
     void DUMP(CefBrowserRef b, const char* tag) {
         if(!b) {
@@ -331,6 +334,56 @@ public:
             { { "url", frame->GetURL().ToString() } }
         );
     }
+
+bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
+                   bool has_selection,
+                   CefRefPtr<CefPrintDialogCallback> callback) override
+{
+    CEF_REQUIRE_UI_THREAD();
+
+    // Tell Chromium: "No, don't show the dialog yourself — I will do it on the right thread"
+    // We return false → callback is kept alive
+    // Then we immediately post the real Print() call to the UI thread (safe even if already there)
+
+    struct SafePrintTask : public CefTask {
+        CefRefPtr<CefBrowser> browser;
+        CefRefPtr<CefPrintDialogCallback> callback;
+        CefRefPtr<CefPrintSettings> settings;
+
+        SafePrintTask(CefRefPtr<CefBrowser> b,
+                      CefRefPtr<CefPrintDialogCallback> cb)
+            : browser(b), callback(cb)
+        {
+            settings = CefPrintSettings::Create();
+            // optional defaults
+            settings->SetCopies(1);
+        }
+
+        void Execute() override {
+            CEF_REQUIRE_UI_THREAD();
+            // This finally shows the real GTK print dialog, fully safely
+            browser->GetHost()->Print();
+            // Chromium will now call the callback itself when dialog closes → no deadlock
+        }
+        IMPLEMENT_REFCOUNTING(SafePrintTask);
+    };
+
+    CefPostTask(TID_UI, new SafePrintTask(browser, callback));
+    return false;   // ← THIS IS THE KEY: return false
+}
+
+// Minimal stubs (required to avoid "pure virtual" errors)
+void OnPrintStart(CefRefPtr<CefBrowser>) override {}
+void OnPrintSettings(CefRefPtr<CefBrowser>, CefRefPtr<CefPrintSettings>, bool) override {}
+void OnPrintReset(CefRefPtr<CefBrowser>) override {}
+bool OnPrintJob(CefRefPtr<CefBrowser>,
+                const CefString&,
+                const CefString&,
+                CefRefPtr<CefPrintJobCallback> callback) override
+{
+    callback->Continue();
+    return true;
+}
 
 private:
     std::string _idx;
