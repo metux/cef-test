@@ -433,23 +433,8 @@ int cefhelper_subprocess(int argc, char *argv[]) {
     return CefExecuteProcess(main_args, app, nullptr);
 }
 
-#include <gtk/gtk.h>  // Minimal GTK for delegate init
-#include <gdk/gdk.h>
-
-static void InitGtkDelegate() {
-    // Init GTK minimally (no full loop, just for singleton)
-    if (!gtk_init_check(0, nullptr)) {
-        fprintf(stderr, "[CEF] WARNING: GTK init failed — printing may crash\n");
-        return;
-    }
-
-    fprintf(stderr, "[CEF] GTK delegate initialized (printing fix)\n");
-}
-
 int cefhelper_run()
 {
-    InitGtkDelegate();
-
     /* dont pass it our actual args */
     CefRefPtr<CefHelperApp> app = new CefHelperApp();
     if (!CefInitialize(CefMainArgs(0, NULL),
