@@ -3,7 +3,7 @@
 
 class ZoomTask : public CefTask {
 public:
-    ZoomTask(CefRefPtr<CefBrowser> b, cefhelper_zoom_mode_t mode, double delta = 0.0)
+    ZoomTask(CefBrowserRef b, cefhelper_zoom_mode_t mode, double delta = 0.0)
         : _browser(b), _mode(mode), _delta(delta) {}
 
     void Execute() override {
@@ -34,7 +34,7 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> _browser;
+    CefBrowserRef _browser;
     cefhelper_zoom_mode_t _mode;
     double _delta;
     IMPLEMENT_REFCOUNTING(ZoomTask);

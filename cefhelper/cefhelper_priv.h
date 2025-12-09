@@ -3,6 +3,7 @@
 
 #include "include/cef_task.h"
 #include "include/cef_browser.h"
+#include "include/internal/cef_ptr.h"
 
 #include "cefhelper.h"
 

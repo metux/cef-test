@@ -3,7 +3,7 @@
 
 class PrintTask : public CefTask {
 public:
-    PrintTask(CefRefPtr<CefBrowser> b, bool show_dialog)
+    PrintTask(CefBrowserRef b, bool show_dialog)
         : browser(b), show_dialog(show_dialog) {}
 
     void Execute() override {
@@ -21,7 +21,7 @@ public:
     }
 
 private:
-    CefRefPtr<CefBrowser> browser;
+    CefBrowserRef browser;
     bool show_dialog;
     IMPLEMENT_REFCOUNTING(PrintTask);
 };

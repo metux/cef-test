@@ -77,7 +77,7 @@ public:
     }
 
 #ifdef USE_ALLOY
-    bool OnCertificateError(CefRefPtr<CefBrowser> browser,
+    bool OnCertificateError(CefBrowserRef browser,
                             cef_errorcode_t cert_error,
                             const CefString& request_url,
                             CefRefPtr<CefSSLInfo> ssl_info,
