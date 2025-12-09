@@ -21,14 +21,6 @@
 
 #define USE_ALLOY
 
-class BrowserInfo {
-    public:
-        CefBrowserRef browser;
-        Window xid;
-        int width;
-        int height;
-};
-
 static std::unordered_map<std::string,CefBrowserRef> browsers;
 static std::unordered_map<std::string,BrowserInfo> browser_info;
 

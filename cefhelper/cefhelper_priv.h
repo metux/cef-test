@@ -9,4 +9,12 @@
 typedef CefRefPtr<CefBrowser> CefBrowserRef;
 typedef CefRefPtr<CefClient> CefClientRef;
 
+class BrowserInfo {
+    public:
+        CefBrowserRef browser;
+        Window xid;
+        int width;
+        int height;
+};
+
 #endif /* _CEFHELPER_PRIV_H */
