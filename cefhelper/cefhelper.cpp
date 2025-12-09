@@ -391,10 +391,6 @@ private:
     }
 };
 
-CefClientRef createCefClient(std::string idx, std::string webhook) {
-    return new CefHelperHandler(idx, webhook);
-}
-
 bool check_cef_subprocess(int argc, char *argv[]) {
     /* check whether we're in a sub-process */
     for (int x=1; x<argc; x++) {
@@ -575,7 +571,13 @@ int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height
         fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
     }
-    taskCreate(idx, parent_xid, width, height, url, webhook);
+    taskCreate(
+        new CefHelperHandler(idx, webhook),
+        idx,
+        parent_xid,
+        width,
+        height,
+        url);
     return 0;
 }
 
