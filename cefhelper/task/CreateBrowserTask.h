@@ -1,5 +1,5 @@
 
-CefRefPtr<CefClient> createCefClient(std::string idx, std::string webhook);
+CefClientRef createCefClient(std::string idx, std::string webhook);
 
 class CreateBrowserTask: public CefTask {
 public:

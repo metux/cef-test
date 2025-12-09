@@ -7,5 +7,6 @@
 #include "cefhelper.h"
 
 typedef CefRefPtr<CefBrowser> CefBrowserRef;
+typedef CefRefPtr<CefClient> CefClientRef;
 
 #endif /* _CEFHELPER_PRIV_H */

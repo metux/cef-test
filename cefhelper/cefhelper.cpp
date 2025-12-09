@@ -187,7 +187,7 @@ public:
         bool user_gesture,
         const CefPopupFeatures& popupFeatures,
         CefWindowInfo& windowInfo,
-        CefRefPtr<CefClient>& client,
+        CefClientRef& client,
         CefBrowserSettings& settings,
         bool* no_javascript_access)
     {
@@ -399,7 +399,7 @@ private:
     }
 };
 
-CefRefPtr<CefClient> createCefClient(std::string idx, std::string webhook) {
+CefClientRef createCefClient(std::string idx, std::string webhook) {
     return new CefHelperHandler(idx, webhook);
 }
 
