@@ -18,4 +18,17 @@ class BrowserInfo {
         int height;
 };
 
+void taskClose(CefBrowserRef b);
+void taskCreate(CefClientRef client, uint32_t parent_xid, int width, int height, std::string url);
+void taskExecuteScript(CefBrowserRef b, const std::string& code);
+void taskBack(CefBrowserRef b);
+void taskForward(CefBrowserRef b);
+void taskLoadURL(CefBrowserRef b, std::string u);
+void taskPrint(CefBrowserRef b);
+void taskReload(CefBrowserRef b);
+void taskRepaint(CefBrowserRef b, BrowserInfo i);
+void taskResize(BrowserInfo i);
+void taskStopLoad(CefBrowserRef b);
+void taskZoom(CefBrowserRef b, cefhelper_zoom_mode_t m, double l);
+
 #endif /* _CEFHELPER_PRIV_H */
