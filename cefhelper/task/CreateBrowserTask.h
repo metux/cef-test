@@ -1,18 +1,11 @@
 
 class CreateBrowserTask: public CefTask {
 public:
-    CreateBrowserTask(CefClientRef client, std::string idx, uint32_t parent_xid,
+    CreateBrowserTask(CefClientRef client, uint32_t parent_xid,
                       int width, int height, std::string url)
-        : _client(client), _idx(idx), _parent_xid(parent_xid), _width(width),
+        : _client(client), _parent_xid(parent_xid), _width(width),
           _height(height), _url(url)
-    {
-        BrowserInfo inf = {
-            .width = width,
-            .height = height,
-        };
-
-        browser_info[idx] = inf;
-    }
+    { }
 
     static CefWindowInfo make_window_info(uint32_t parent_xid, int width, int height) {
         CefWindowInfo wi;
@@ -37,15 +30,14 @@ public:
 private:
     CefClientRef _client;
     uint32_t _parent_xid;
-    std::string _idx;
     int _width;
     int _height;
     std::string _url;
     IMPLEMENT_REFCOUNTING(CreateBrowserTask);
 };
 
-void taskCreate(CefClientRef client, std::string idx, uint32_t parent_xid,
+void taskCreate(CefClientRef client, uint32_t parent_xid,
                 int width, int height, std::string url) {
     CefPostTask(TID_UI,
-                new CreateBrowserTask(client, idx, parent_xid, width, height, url));
+                new CreateBrowserTask(client, parent_xid, width, height, url));
 }

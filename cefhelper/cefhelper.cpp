@@ -571,9 +571,16 @@ int cefhelper_create(const char *idx, uint32_t parent_xid, int width, int height
         fprintf(stderr, "WARNING: create: slot %s already taken\n", idx);
         return -1;
     }
+
+    BrowserInfo inf = {
+        .width = width,
+        .height = height,
+    };
+
+    browser_info[idx] = inf;
+
     taskCreate(
         new CefHelperHandler(idx, webhook),
-        idx,
         parent_xid,
         width,
         height,
