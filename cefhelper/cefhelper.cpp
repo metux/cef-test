@@ -24,19 +24,6 @@
 static std::unordered_map<std::string,CefBrowserRef> browsers;
 static std::unordered_map<std::string,BrowserInfo> browser_info;
 
-#include "task/GoForwardTask.h"
-#include "task/GoBackTask.h"
-#include "task/CloseTask.h"
-#include "task/CreateBrowserTask.h"
-#include "task/ExecuteScriptTask.h"
-#include "task/LoadURLTask.h"
-#include "task/ReloadTask.h"
-#include "task/StopLoadTask.h"
-#include "task/PrintTask.h"
-#include "task/RepaintTask.h"
-#include "task/ResizeTask.h"
-#include "task/ZoomTask.h"
-
 class CefHelperHandler: public CefClient,
                         public CefLifeSpanHandler,
                         public CefKeyboardHandler,
@@ -132,6 +119,7 @@ public:
     }
 
     void OnAfterCreated(CefBrowserRef browser) override {
+        fprintf(stderr, "OnAfterCreated\n");
         if (browsers[_idx] != nullptr)
             fprintf(stderr, "WARNING: OnAfterCreate() browser slot %s already taken\n", _idx);
 

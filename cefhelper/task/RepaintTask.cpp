@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class RepaintTask: public CefTask {
 public:
     RepaintTask(CefBrowserRef b, BrowserInfo i) : _browser(b), _info(i) {}
@@ -20,7 +21,7 @@ public:
 private:
     CefBrowserRef _browser;
     BrowserInfo _info;
-    IMPLEMENT_REFCOUNTING(RepaintTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(RepaintTask);
 };
 
 void taskRepaint(CefBrowserRef b, BrowserInfo i) {

@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class ResizeTask: public CefTask {
 public:
     ResizeTask(BrowserInfo i) : _info(i) {}
@@ -14,7 +15,7 @@ public:
 
 private:
     BrowserInfo _info;
-    IMPLEMENT_REFCOUNTING(ResizeTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(ResizeTask);
 };
 
 void taskResize(BrowserInfo i) {

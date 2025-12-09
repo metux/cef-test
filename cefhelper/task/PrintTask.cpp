@@ -3,6 +3,7 @@
 #include "include/cef_print_handler.h"
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class PrintTask : public CefTask {
 public:
     PrintTask(CefBrowserRef b, bool show_dialog)
@@ -25,7 +26,7 @@ public:
 private:
     CefBrowserRef browser;
     bool show_dialog;
-    IMPLEMENT_REFCOUNTING(PrintTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(PrintTask);
 };
 
 void taskPrint(CefBrowserRef b) {

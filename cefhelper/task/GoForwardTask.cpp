@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class GoForwardTask: public CefTask {
 public:
     GoForwardTask(CefBrowserRef b) : browser(b) {}
@@ -12,7 +13,7 @@ public:
 
 private:
     CefBrowserRef browser;
-    IMPLEMENT_REFCOUNTING(GoForwardTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(GoForwardTask);
 };
 
 void taskForward(CefBrowserRef b) {

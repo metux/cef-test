@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class LoadURLTask : public CefTask {
 public:
     LoadURLTask(CefBrowserRef b, std::string u) : browser(b), url(u) {}
@@ -12,7 +13,7 @@ public:
 private:
     CefBrowserRef browser;
     std::string url;
-    IMPLEMENT_REFCOUNTING(LoadURLTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(LoadURLTask);
 };
 
 void taskLoadURL(CefBrowserRef b, std::string u) {

@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class ZoomTask : public CefTask {
 public:
     ZoomTask(CefBrowserRef b, cefhelper_zoom_mode_t mode, double delta = 0.0)
@@ -37,7 +38,7 @@ private:
     CefBrowserRef _browser;
     cefhelper_zoom_mode_t _mode;
     double _delta;
-    IMPLEMENT_REFCOUNTING(ZoomTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(ZoomTask);
 };
 
 void taskZoom(CefBrowserRef b, cefhelper_zoom_mode_t m, double l) {

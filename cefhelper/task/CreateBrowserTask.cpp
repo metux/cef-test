@@ -2,6 +2,7 @@
 #include "../cefhelper_priv.h"
 #include "include/cef_client.h"
 
+__attribute__((visibility("default"), used))
 class CreateBrowserTask: public CefTask {
 public:
     CreateBrowserTask(CefClientRef client, uint32_t parent_xid,
@@ -36,7 +37,7 @@ private:
     int _width;
     int _height;
     std::string _url;
-    IMPLEMENT_REFCOUNTING(CreateBrowserTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(CreateBrowserTask);
 };
 
 void taskCreate(CefClientRef client, uint32_t parent_xid,

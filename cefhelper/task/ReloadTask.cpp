@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class ReloadTask : public CefTask {
 public:
     ReloadTask(CefBrowserRef b) : browser(b) {}
@@ -15,7 +16,7 @@ public:
 
 private:
     CefBrowserRef browser;
-    IMPLEMENT_REFCOUNTING(ReloadTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(ReloadTask);
 };
 
 void taskReload(CefBrowserRef b) {

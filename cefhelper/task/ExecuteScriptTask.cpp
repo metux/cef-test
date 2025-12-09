@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class ExecuteScriptTask : public CefTask {
 public:
     ExecuteScriptTask(CefBrowserRef b, const std::string& code)
@@ -14,7 +15,7 @@ public:
 private:
     CefBrowserRef browser;
     std::string script;
-    IMPLEMENT_REFCOUNTING(ExecuteScriptTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(ExecuteScriptTask);
 };
 
 void taskExecuteScript(CefBrowserRef b, const std::string& code) {

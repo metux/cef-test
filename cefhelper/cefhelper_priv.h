@@ -31,4 +31,30 @@ void taskResize(BrowserInfo i);
 void taskStopLoad(CefBrowserRef b);
 void taskZoom(CefBrowserRef b, cefhelper_zoom_mode_t m, double l);
 
+#define IMPLEMENT_REFCOUNTING_EXPORT(ClassName)   \
+ public:                                          \
+  __attribute__((visibility("default")))          \
+  void AddRef() const override {                  \
+    ref_count_.AddRef();                          \
+  }                                               \
+  __attribute__((visibility("default"), used))    \
+  bool Release() const override {                 \
+    if (ref_count_.Release()) {                   \
+      delete static_cast<const ClassName*>(this); \
+      return true;                                \
+    }                                             \
+    return false;                                 \
+  }                                               \
+  __attribute__((visibility("default"), used))    \
+  bool HasOneRef() const override {               \
+    return ref_count_.HasOneRef();                \
+  }                                               \
+  __attribute__((visibility("default"), used))    \
+  bool HasAtLeastOneRef() const override {        \
+    return ref_count_.HasAtLeastOneRef();         \
+  }                                               \
+                                                  \
+ private:                                         \
+  CefRefCount ref_count_
+
 #endif /* _CEFHELPER_PRIV_H */

@@ -1,6 +1,7 @@
 
 #include "../cefhelper_priv.h"
 
+__attribute__((visibility("default"), used))
 class GoBackTask: public CefTask {
 public:
     GoBackTask(CefBrowserRef b) : browser(b) {}
@@ -12,7 +13,7 @@ public:
 
 private:
     CefBrowserRef browser;
-    IMPLEMENT_REFCOUNTING(GoBackTask);
+    IMPLEMENT_REFCOUNTING_EXPORT(GoBackTask);
 };
 
 void taskBack(CefBrowserRef b) {
