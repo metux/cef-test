@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class ResizeTask: public CefTask {
 public:
     ResizeTask(BrowserInfo i) : _info(i) {}

@@ -1,4 +1,6 @@
 
+#include "include/internal/cef_ptr.h"
+#include "include/cef_print_handler.h"
 #include "../cefhelper_priv.h"
 
 class PrintTask : public CefTask {

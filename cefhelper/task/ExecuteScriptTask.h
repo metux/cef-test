@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class ExecuteScriptTask : public CefTask {
 public:
     ExecuteScriptTask(CefBrowserRef b, const std::string& code)

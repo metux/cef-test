@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class GoBackTask: public CefTask {
 public:
     GoBackTask(CefBrowserRef b) : browser(b) {}

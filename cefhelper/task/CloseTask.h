@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class CloseTask: public CefTask {
 public:
     CloseTask(CefBrowserRef b) : browser(b) {}

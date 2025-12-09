@@ -1,4 +1,7 @@
 
+#include "../cefhelper_priv.h"
+#include "include/cef_client.h"
+
 class CreateBrowserTask: public CefTask {
 public:
     CreateBrowserTask(CefClientRef client, uint32_t parent_xid,

@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class ReloadTask : public CefTask {
 public:
     ReloadTask(CefBrowserRef b) : browser(b) {}

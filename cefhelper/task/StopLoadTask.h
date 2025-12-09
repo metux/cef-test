@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class StopLoadTask : public CefTask {
 public:
     StopLoadTask(CefBrowserRef b) : browser(b) {}

@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class LoadURLTask : public CefTask {
 public:
     LoadURLTask(CefBrowserRef b, std::string u) : browser(b), url(u) {}

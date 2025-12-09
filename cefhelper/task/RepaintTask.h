@@ -1,3 +1,6 @@
+
+#include "../cefhelper_priv.h"
+
 class RepaintTask: public CefTask {
 public:
     RepaintTask(CefBrowserRef b, BrowserInfo i) : _browser(b), _info(i) {}
