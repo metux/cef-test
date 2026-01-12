@@ -5,12 +5,12 @@ set -e
 . conf.sh
 
 #URL="http%3A%2F%2Flunduke.com"
-URL="http://lunduke.com"
+#URL="http://lunduke.com"
 URL="https://www.netcom.eu/"
 
 # URL="http://www.kom-in.thur.de/"
-URL="http://no-such-server.example.com/"
+#URL="http://no-such-server.example.com/"
 
-URL="http://127.0.0.2/"
+#URL="http://127.0.0.2/"
 
 api_seturl "$SLOT_0" "$URL"
