@@ -165,6 +165,7 @@ public:
     }
 
     void OnBeforeClose(CefBrowserRef browser) override {
+        fprintf(stderr, "OnBeforeClose(): browser %s closed\n", _idx.c_str());
         browsers.erase(_idx);
         browser_info.erase(_idx);
         postEvent("browser.close");
