@@ -2,7 +2,7 @@
 
 set -e
 
-RELEASE=2025-12-11-01
+RELEASE=2026-01-12-01
 
 DOWNLOAD_DIR=cefsdk/download
 DOWNLOAD_URL=https://github.com/metux/cef-chromium/releases/download/
