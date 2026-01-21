@@ -6,7 +6,7 @@ set -e
 
 #URL="http%3A%2F%2Flunduke.com"
 #URL="http://lunduke.com"
-URL="https://www.netcom.eu/"
+URL="https://github.com/X11Libre/xserver"
 
 # URL="http://www.kom-in.thur.de/"
 #URL="http://no-such-server.example.com/"
