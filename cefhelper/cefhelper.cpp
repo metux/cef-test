@@ -101,12 +101,12 @@ public:
         fprintf(stderr, "STATUS: %s\n", value.ToString().c_str());
     }
 
-    void OnTitleChange(CefBrowserRef browser, const CefString& title)
+    void OnTitleChange(CefBrowserRef browser, const CefString& title) override
     {
         fprintf(stderr, "TITLE: %s\n", title.ToString().c_str());
     }
 
-    virtual void OnLoadingProgressChange(CefBrowserRef browser, double progress)
+    void OnLoadingProgressChange(CefBrowserRef browser, double progress) override
     {
         fprintf(stderr, "PROGRESS: %f\n", progress);
     }
@@ -170,24 +170,25 @@ public:
         postEvent("browser.close");
     }
 
-    virtual bool OnBeforePopup(
-        CefBrowserRef browser,
-        CefRefPtr<CefFrame> frame,
-        const CefString& target_url,
-        const CefString& target_frame_name,
-        CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-        bool user_gesture,
-        const CefPopupFeatures& popupFeatures,
-        CefWindowInfo& windowInfo,
-        CefClientRef& client,
-        CefBrowserSettings& settings,
-        bool* no_javascript_access)
+    bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                       CefRefPtr<CefFrame> frame,
+                       int popup_id,
+                       const CefString& target_url,
+                       const CefString& target_frame_name,
+                       cef_window_open_disposition_t target_disposition,
+                       bool user_gesture,
+                       const CefPopupFeatures& popupFeatures,
+                       CefWindowInfo& windowInfo,
+                       CefRefPtr<CefClient>& client,
+                       CefBrowserSettings& settings,
+                       CefRefPtr<CefDictionaryValue>& extra_info,
+                       bool* no_javascript_access) override
     {
         DUMP(browser, "OnBeforePopup");
         return true; // Returning true cancels popup creation
     }
 
-    virtual bool OnPreKeyEvent(CefBrowserRef browser,
+    bool OnPreKeyEvent(CefBrowserRef browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event,
                                bool* is_keyboard_shortcut) override
@@ -293,11 +294,11 @@ public:
     }
 
     // CefRenderProcessHandler
-    virtual bool OnConsoleMessage(CefBrowserRef browser,
-                                  cef_log_severity_t level,
-                                  const CefString& message,
-                                  const CefString& source,
-                                  int line) override
+    bool OnConsoleMessage(CefBrowserRef browser,
+                          cef_log_severity_t level,
+                          const CefString& message,
+                          const CefString& source,
+                          int line) override
     {
         std::string sev = "";
         switch (level) {
@@ -321,9 +322,9 @@ public:
         return false;
     }
 
-    virtual void OnLoadEnd(CefBrowserRef browser,
-                           CefRefPtr<CefFrame> frame,
-                           int httpStatusCode) override
+    void OnLoadEnd(CefBrowserRef browser,
+                   CefRefPtr<CefFrame> frame,
+                   int httpStatusCode) override
     {
         std::string current_url = frame->GetURL().ToString();
         postEvent(
