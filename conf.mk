@@ -25,8 +25,8 @@ NANOHTTPD_LIBS := $(srcroot)/nanohttpd/libnanohttpd.a
 NANOHTTPD_CFLAGS := -I$(srcroot)/nanohttpd
 
 # Compiler / flags
-CXX ?= g++
-CC ?= gcc
-CFLAGS += -ffunction-sections -fdata-sections -O2 -Wno-unused
-CXXFLAGS += $(CFLAGS) -g -std=c++17
-LDFLAGS += -Wl,-rpath,. -pthread -Wl,--gc-sections
+CXX := clang++
+CC := clang
+CFLAGS := -ffunction-sections -fdata-sections -O2 -Wno-unused
+CXXFLAGS := -std=c++20 $(CFLAGS) -g
+LDFLAGS := -Wl,-rpath,. -pthread -Wl,--gc-sections
