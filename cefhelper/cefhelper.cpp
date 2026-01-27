@@ -165,6 +165,7 @@ public:
     }
 
     void OnBeforeClose(CefBrowserRef browser) override {
+        DUMP(browser, "OnBeforeClose()");
         browsers.erase(_idx);
         browser_info.erase(_idx);
         postEvent("browser.close");
