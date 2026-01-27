@@ -2,7 +2,8 @@
 
 set -e
 
-CEF_BUILD_DIR=../cef-build
+#CEF_BUILD_DIR=../cef-build
+CEF_BUILD_DIR=/media/patriot0/dev/cef-build-1
 BINARY_DIR=./code/chromium_git/chromium/src/cef/binary_distrib
 DOWNLOAD_DIR=cefsdk/download
 
