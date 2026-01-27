@@ -126,14 +126,14 @@ public:
         fprintf(stderr, "[HTTP %d] %s\n", status, url.ToString().c_str());
 
         if (frame->IsMain()) {
-            fprintf(stderr, "=== MAIN FRAME STATUS: %d for browser %d ===\n", status, _idx);
+            fprintf(stderr, "=== MAIN FRAME STATUS: %d for browser %s ===\n", status, _idx.c_str());
         }
         return true;
     }
 
     void OnAfterCreated(CefBrowserRef browser) override {
         if (browsers[_idx] != nullptr)
-            fprintf(stderr, "WARNING: OnAfterCreate() browser slot %s already taken\n", _idx);
+            fprintf(stderr, "WARNING: OnAfterCreate() browser slot %s already taken\n", _idx.c_str());
 
         Window xid = (Window) browser->GetHost()->GetWindowHandle();
         browsers[_idx] = browser;
@@ -142,7 +142,7 @@ public:
 
         auto style = browser->GetHost()->GetRuntimeStyle();
 
-        fprintf(stderr, "OnAfterCreated(): browser %s child window: %x style: %d\n",
+        fprintf(stderr, "OnAfterCreated(): browser %s child window: %lx style: %d\n",
             _idx.c_str(), xid, style);
 
         browser->GetHost()->SetFocus(true);
