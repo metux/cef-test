@@ -30,6 +30,10 @@ public:
                 host->SetZoomLevel(
                     host->GetZoomLevel() - (_delta ? _delta : 0.25));
             break;
+            case CEFHELPER_ZOOM_RESET:
+                fprintf(stderr, "zoom reset\n");
+                host->SetZoomLevel(1);
+            break;
         }
     }
 
