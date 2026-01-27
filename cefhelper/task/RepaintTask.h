@@ -8,7 +8,7 @@ public:
     void Execute() override {
         Display *dpy = cef_get_xdisplay();
         Window win = (Window) _browser->GetHost()->GetWindowHandle();
-        fprintf(stderr, "== RepaintTask: resizing window %x to %d:%d\n", win, _info.width, _info.height);
+        fprintf(stderr, "== RepaintTask: resizing window %lx to %d:%d\n", win, _info.width, _info.height);
 
         XResizeWindow(dpy, win, _info.width + 1, _info.height + 1);
         XSync(dpy, False);
