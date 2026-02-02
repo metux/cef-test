@@ -165,8 +165,22 @@ public:
     }
 
     void OnBeforeClose(CefBrowserRef browser) override {
+        DUMP(browser, "OnBeforeClose()");
+        fprintf(stderr, "Browser idx=%s\n", _idx.c_str());
+
+        for (auto it = browsers.begin(); it != browsers.end(); ++it) {
+            std::cerr << "BEFORE BROWSER ID: \"";
+            std::cerr << it->first << "\"\n";
+        }
+
         browsers.erase(_idx);
         browser_info.erase(_idx);
+        // FIXME
+        for (auto it = browsers.begin(); it != browsers.end(); ++it) {
+            std::cerr << "AFTER BROWSER ID: \"";
+            std::cerr << it->first << "\"\n";
+        }
+
         postEvent("browser.close");
     }
 
