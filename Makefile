@@ -33,3 +33,7 @@ install: bundle
 	mkdir -p $(DESTDIR)/$(BINDIR)
 	cat browserd.in | sed -e 's~__PREFIX__~$(INSTALL_PREFIX)~g;' > $(DESTDIR)/$(BINDIR)/browserd
 	chmod ugo+x $(DESTDIR)/$(BINDIR)/browserd
+
+distclean:
+	$(MAKE) clean
+	rm -Rf cefsdk/download
