@@ -2,20 +2,20 @@
 
 set -e
 
-RELEASE=2026-01-21-01
+. conf.sh
 
 DOWNLOAD_DIR=cefsdk/download
 DOWNLOAD_URL=https://github.com/metux/cef-chromium/releases/download/
-TARBALL=cef_binary-$RELEASE.tar.bz2
+TARBALL=cef_binary-$CEFSDK_PULL_RELEASE.tar.bz2
 
 mkdir -p $DOWNLOAD_DIR
 
 if [ -f $DOWNLOAD_DIR/$TARBALL ]; then
-    echo "$0: release $RELEASE already downloaded" >&1
+    echo "$0: release $CEFSDK_PULL_RELEASE already downloaded" >&1
     echo "remove $DOWNLOAD_DIR/$TARBALL to force download" >&1
     exit 1
 fi
 
 ( cd $DOWNLOAD_DIR && \
-    wget $DOWNLOAD_URL/$RELEASE/$TARBALL && \
+    wget $DOWNLOAD_URL/$CEFSDK_PULL_RELEASE/$TARBALL && \
     ln -sf $TARBALL cef.tar.bz2 )
