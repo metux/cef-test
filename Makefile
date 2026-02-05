@@ -37,3 +37,8 @@ install: bundle
 distclean:
 	$(MAKE) clean
 	rm -Rf cefsdk/download
+
+resync:
+	$(MAKE) distclean
+	./sync-cef
+	$(MAKE)
