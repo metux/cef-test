@@ -1,5 +1,5 @@
 # the CEF binary release we're going to download
-CEFSDK_PULL_RELEASE="2026-01-21-01"
+CEFSDK_PULL_RELEASE="145.0.7632.0-2026-02-10-01"
 
 URL_PREFIX="http://localhost:8080/api/v1/browser"
 SLOT_0="wintest-1-0"
